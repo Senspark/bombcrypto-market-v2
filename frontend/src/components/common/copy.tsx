@@ -37,18 +37,23 @@ const CopyFunc: React.FC<CopyFuncProps> = ({ data }) => {
     setMessage("Copied");
   };
 
+  const resetMessage = () => {
+    setMessage("Copy to clipboard");
+  };
+
   return (
     <Wrap>
-      <div
+      <button
+        type="button"
         className="icon tooltip"
-        onMouseLeave={() => {
-          setMessage("Copy to clipboard");
-        }}
+        onMouseLeave={resetMessage}
+        onBlur={resetMessage}
         onClick={onclick}
+        aria-label={message}
       >
         <span className="tooltiptext">{message}</span>
         <Copy />
-      </div>
+      </button>
     </Wrap>
   );
 };
@@ -65,8 +70,15 @@ const Wrap = styled.div`
     text-align: center;
     padding: 0.2rem;
     border-radius: 3px;
-    &:hover {
+
+    /* Reset button styles */
+    background: transparent;
+    border: none;
+    font-family: inherit;
+
+    &:hover, &:focus-visible {
       transform: scale(1.1);
+      outline: none;
     }
     svg {
       height: 1rem;
@@ -111,7 +123,8 @@ const Wrap = styled.div`
     border-color: transparent transparent #555 transparent;
   }
 
-  .tooltip:hover .tooltiptext {
+  .tooltip:hover .tooltiptext,
+  .tooltip:focus-visible .tooltiptext {
     visibility: visible;
     opacity: 1;
   }

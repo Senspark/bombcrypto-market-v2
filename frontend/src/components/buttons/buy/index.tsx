@@ -8,6 +8,7 @@ import BuySuccess from "../../modal/buy-success";
 import axios from "axios";
 import { NETWORK, SmartContracts } from "../../../utils/config";
 import { getAPI } from "../../../utils/helper";
+import { useCart } from "../../../context/cart";
 
 const ButtonBuy = styled.div`
   padding: 0.938rem 2.125rem;
@@ -53,6 +54,7 @@ interface ButtonProps {
 }
 
 const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
+  const { addToCart, isInCart } = useCart();
   const { isShowing, toggle } = useModal();
   const [status, setStatus] = useState("");
   const { auth, clear, network } = useAccount();
@@ -207,12 +209,34 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
 
   return (
     <React.Fragment>
-      <ButtonBuy
-        className={!isAllow ? "bcoin-btn disable" : "bcoin-btn"}
-        onClick={() => onClick(data)}
-      >
-        Buy
-      </ButtonBuy>
+      <div style={{ display: "flex" }}>
+        <ButtonBuy
+          className={!isAllow ? "bcoin-btn disable" : "bcoin-btn"}
+          onClick={() => onClick(data)}
+        >
+          Buy
+        </ButtonBuy>
+        <ButtonBuy
+          className={isInCart(id) ? "bcoin-btn disable" : "bcoin-btn"}
+          style={{
+            marginLeft: "10px",
+            backgroundColor: isInCart(id) ? "transparent" : "#3f4564",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isInCart(id)) {
+              addToCart({
+                id: id,
+                price: String(price),
+                tokenAddress: data.isToken || "",
+                data: data,
+              });
+            }
+          }}
+        >
+          {isInCart(id) ? "Added" : "+ Cart"}
+        </ButtonBuy>
+      </div>
       {status == "notfound" && (
         <Error
           message="The assets is no longer on the market because it has been sold or the seller has canceled the sale"

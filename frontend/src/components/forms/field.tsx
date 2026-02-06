@@ -13,12 +13,12 @@ const FormItem = styled.div`
     line-height: 1.35;
     letter-spacing: normal;
     text-align: left;
-    color: #fff;
+    color: ${({ theme }) => theme.colors.text};
     min-width: 7rem;
     display: inline-block;
   }
   span {
-    color: white;
+    color: ${({ theme }) => theme.colors.text};
     margin-right: 1rem;
   }
   & > div {
@@ -30,15 +30,15 @@ const FormItem = styled.div`
     justify-content: center;
     align-items: center;
     border-radius: 3px;
-    border: solid 1px #3a3f54;
-    background-color: #1d1f2b;
-    color: white;
+    border: solid 1px ${({ theme }) => theme.colors.border};
+    background-color: ${({ theme }) => theme.colors.surface};
+    color: ${({ theme }) => theme.colors.text};
     text-align: center;
 
     &:focus {
       outline: none;
       box-shadow: none;
-      border: 1px solid white;
+      border: 1px solid ${({ theme }) => theme.colors.primary};
     }
   }
 `;
@@ -60,7 +60,7 @@ const Field: React.FC<FieldProps> = ({ init = "", label, name, onChange = () => 
       <label htmlFor="">{label}</label>
       <div>
         <span>{">="}</span>
-        <input type="text" defaultValue={init} onChange={changeInput} />
+        <input type="text" defaultValue={init} onChange={changeInput} aria-label={label} />
       </div>
     </FormItem>
   );

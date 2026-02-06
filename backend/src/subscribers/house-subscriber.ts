@@ -126,7 +126,7 @@ export class HouseSubscriber extends BaseSubscriber {
             buyerWalletAddress: '',
             houseDetails: event.tokenDetail.toString(),
             amount: event.price.toString(),
-            tokenId: Number(event.tokenId),
+            tokenId: event.tokenId.toString(),
             payToken,
         };
 
@@ -160,7 +160,7 @@ export class HouseSubscriber extends BaseSubscriber {
             buyerWalletAddress: event.buyer,
             houseDetails: event.tokenDetail.toString(),
             amount: event.price.toString(),
-            tokenId: Number(event.tokenId),
+            tokenId: event.tokenId.toString(),
             payToken,
         };
 
@@ -185,7 +185,7 @@ export class HouseSubscriber extends BaseSubscriber {
      * Handle CancelOrder event - delete listing
      */
     private async handleCancelOrder(event: CancelOrderEvent): Promise<void> {
-        await this.houseRepo.deleteAllCreateOrders(Number(event.tokenId));
+        await this.houseRepo.deleteAllCreateOrders(event.tokenId.toString());
 
         this.logger.info('HouseSubscriber processed CancelOrder', {
             tokenId: event.tokenId.toString(),

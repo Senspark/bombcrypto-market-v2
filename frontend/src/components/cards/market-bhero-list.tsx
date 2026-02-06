@@ -317,4 +317,6 @@ const Item = styled.div`
   }
 `;
 
-export default BHeroFullWidth;
+// ⚡ Bolt: Wrapped in React.memo to prevent unnecessary re-renders.
+// This component is rendered in a large list, so avoiding re-renders when data hasn't changed is critical for performance.
+export default React.memo(BHeroFullWidth);

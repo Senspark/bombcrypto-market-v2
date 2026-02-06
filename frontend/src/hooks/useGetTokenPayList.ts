@@ -32,18 +32,23 @@ const useGetTokenPayList = () => {
     listing.data.transactions.map((el) => {
       listTokenId.push(el.token_id);
     });
-    const respPay = isSwitchBHouse
-      ? await getHousePayList(listTokenId as unknown as number)
-      : await getTokenPayList(listTokenId as unknown as number);
-    let resp: Transaction[];
-    if (respPay.length > 0) {
-      resp = listing.data.transactions.map((el, index) => {
-        return { ...el, isToken: respPay[index] };
-      });
-    } else {
-      resp = listing.data.transactions;
+    try {
+      const respPay = isSwitchBHouse
+        ? await getHousePayList(listTokenId as unknown as number)
+        : await getTokenPayList(listTokenId as unknown as number);
+      let resp: Transaction[];
+      if (respPay.length > 0) {
+        resp = listing.data.transactions.map((el, index) => {
+          return { ...el, isToken: respPay[index] };
+        });
+      } else {
+        resp = listing.data.transactions;
+      }
+      return resp;
+    } catch (error) {
+      console.warn("Failed to fetch token pay list, falling back to basic data", error);
+      return listing.data.transactions;
     }
-    return resp;
   };
   return {
     getListTokenPay,

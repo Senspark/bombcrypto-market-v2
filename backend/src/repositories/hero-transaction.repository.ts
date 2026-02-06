@@ -22,7 +22,7 @@ interface HeroOrderRow {
     seller_wallet_address: string;
     buyer_wallet_address: string;
     amount_text: string;
-    token_id: number;
+    token_id: string;
     pay_token: string;
     rarity: number;
     level: number;
@@ -234,7 +234,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
         return rowToHeroTxRepr(result.rows[0]);
     }
 
-    async getByTokenId(tokenId: number): Promise<HeroTxRepr | null> {
+    async getByTokenId(tokenId: string): Promise<HeroTxRepr | null> {
         const sql = `
       SELECT ${HERO_SELECT_COLUMNS}
       FROM hero_orders
@@ -247,7 +247,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
         return rowToHeroTxRepr(result.rows[0]);
     }
 
-    async deleteCreateOrder(tokenId: number, blockNumber: number): Promise<void> {
+    async deleteCreateOrder(tokenId: string, blockNumber: number): Promise<void> {
         const sql = `
       UPDATE hero_orders
       SET deleted = true, updated_at = NOW()
@@ -256,7 +256,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
         await this.db.query(sql, [tokenId, blockNumber]);
     }
 
-    async deleteAllCreateOrders(tokenId: number): Promise<void> {
+    async deleteAllCreateOrders(tokenId: string): Promise<void> {
         const sql = `
       UPDATE hero_orders
       SET deleted = true, updated_at = NOW()
@@ -340,7 +340,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
 
     private async insertHeroAbilities(
         client: PoolClient,
-        heroTokenId: number,
+        heroTokenId: string,
         abilities: number[]
     ): Promise<void> {
         if (abilities.length === 0) return;
@@ -366,7 +366,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
 
     private async insertHeroSAbilities(
         client: PoolClient,
-        heroTokenId: number,
+        heroTokenId: string,
         abilities: number[]
     ): Promise<void> {
         if (abilities.length === 0) return;
@@ -392,7 +392,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
 
     private async softDeleteListingOrders(
         client: PoolClient,
-        tokenId: number,
+        tokenId: string,
         blockNumber: number
     ): Promise<void> {
         const sql = `
@@ -405,7 +405,7 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
 
     private async pruneOldListingOrders(
         client: PoolClient,
-        tokenId: number
+        tokenId: string
     ): Promise<void> {
         const sql = `
       UPDATE hero_orders

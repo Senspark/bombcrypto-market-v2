@@ -141,10 +141,10 @@ contract BHeroMarket is
         // save order info
         Order memory order = Order(
             _tokenId,
-            msg.sender,
             _price,
             _tokenDetails,
-            block.timestamp
+            msg.sender,
+            uint64(block.timestamp)
         );
 
         // save token address state
@@ -159,6 +159,16 @@ contract BHeroMarket is
     function buy(uint256 _tokenId, uint256 _price) external whenNotPaused {
         // _bid will throw if the bid or funds transfer fails
         _buy(_tokenId, _price);
+    }
+
+    // @dev Batch Buy on active orders
+    // @param _tokenIds - IDs of nfts.
+    // @param _prices - prices of the NFTs.
+    function batchBuy(uint256[] calldata _tokenIds, uint256[] calldata _prices) external whenNotPaused {
+        require(_tokenIds.length == _prices.length, "Input lengths must match");
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            _buy(_tokenIds[i], _prices[i]);
+        }
     }
 
     // @dev Cancels an order that hasn't been won yet.

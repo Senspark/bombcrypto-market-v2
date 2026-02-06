@@ -28,6 +28,7 @@ export interface Web3ContextValue {
   BcoinAllowance: () => Promise<string>;
   BcoinApprove: () => Promise<void>;
   buyHero: (id: number | string, price: string) => Promise<ContractTransactionReceipt | null>;
+  batchBuyHero: (ids: (number | string)[], prices: string[]) => Promise<ContractTransactionReceipt | null>;
   address: string;
   updateBcoin: () => Promise<any>;
   wasHeroBurn: (id: number | string) => Promise<boolean>;
@@ -269,6 +270,13 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     return result ?? null;
   };
 
+  const batchBuyHero = async (ids: (number | string)[], prices: string[]): Promise<ContractTransactionReceipt | null> => {
+    const prices_BN = prices.map(p => BigInt(p).toString());
+    const tx = await InstanceHeroMarket?.batchBuy(ids, prices_BN);
+    const result = await tx?.wait();
+    return result ?? null;
+  };
+
   const getBHeroDetail = async (): Promise<any> => {
     InstanceBhero = new Contract(bhero.address, bhero.abi, InstanceSigner!);
     const result = await InstanceBhero.getTokenDetailsByOwner(address);
@@ -435,6 +443,7 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     BcoinAllowance,
     BcoinApprove,
     buyHero,
+    batchBuyHero,
     address,
     updateBcoin,
     wasHeroBurn,

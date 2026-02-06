@@ -21,7 +21,10 @@ const OWNER_OF_ABI = [
     },
 ];
 
-// Hero handler dependencies
+/**
+ * Hero handler dependencies
+ * @interface HeroHandlerDeps
+ */
 export interface HeroHandlerDeps {
     heroTxRepo: IHeroTransactionRepository;
     cache: ICache;
@@ -31,14 +34,22 @@ export interface HeroHandlerDeps {
     logger: Logger;
 }
 
-// Parse array query param
+/**
+ * Parses a value into a string array.
+ * @param {unknown} value - The value to parse (string or array of strings).
+ * @returns {string[]} An array of strings.
+ */
 function parseArrayParam(value: unknown): string[] {
     if (Array.isArray(value)) return value.map(String);
     if (typeof value === 'string') return [value];
     return [];
 }
 
-// Parse number array query param
+/**
+ * Parses a value into a number array.
+ * @param {unknown} value - The value to parse.
+ * @returns {number[]} An array of valid numbers.
+ */
 function parseNumberArrayParam(value: unknown): number[] {
     const strings = parseArrayParam(value);
     return strings
@@ -46,7 +57,12 @@ function parseNumberArrayParam(value: unknown): number[] {
         .filter((n) => !isNaN(n));
 }
 
-// Parse single number query param
+/**
+ * Parses a single number parameter with a default fallback.
+ * @param {unknown} value - The value to parse.
+ * @param {number} defaultVal - The fallback value.
+ * @returns {number} The parsed number or default.
+ */
 function parseNumberParam(value: unknown, defaultVal: number = 0): number {
     if (typeof value === 'string') {
         const parsed = parseInt(value, 10);
@@ -55,7 +71,14 @@ function parseNumberParam(value: unknown, defaultVal: number = 0): number {
     return defaultVal;
 }
 
-// Parse filter context from request query
+/**
+ * Parses the request query into a structured HeroTxFilterContext.
+ * @param {Request['query']} query - The express request query object.
+ * @returns {HeroTxFilterContext} The constructed filter context.
+ *
+ * Complexity Note: Maps various loose query parameters to a strict typed object.
+ * Handles pagination, sorting, and specific hero attribute filtering.
+ */
 function parseHeroFilterContext(query: Request['query']): HeroTxFilterContext {
     const ctx = createEmptyHeroTxFilterContext();
 
@@ -84,9 +107,11 @@ function parseHeroFilterContext(query: Request['query']): HeroTxFilterContext {
     ctx.payToken = parseArrayParam(query.pay_token);
 
     // Number array filters
-    ctx.tokenId = parseNumberArrayParam(query.token_id);
     ctx.rarity = parseNumberArrayParam(query.rarity);
     ctx.abilities = parseNumberArrayParam(query.ability);
+
+    // String array filters
+    ctx.tokenId = parseArrayParam(query.token_id);
     ctx.abilitiesHeroS = parseNumberArrayParam(query.s_ability);
 
     // RHS format filters (e.g., level=gte:20)
@@ -104,8 +129,17 @@ function parseHeroFilterContext(query: Request['query']): HeroTxFilterContext {
 }
 
 /**
- * GET /transactions/heroes/search
- * Search hero transactions
+ * Creates the search handler for Hero Transactions.
+ * Endpoint: GET /transactions/heroes/search
+ *
+ * Logic:
+ * 1. Parse query params into filter context.
+ * 2. Check cache for existing results.
+ * 3. If cache miss, query repository.
+ * 4. Background: Track search IDs for analytics.
+ *
+ * @param {HeroHandlerDeps} deps - Dependencies.
+ * @returns {Function} Express handler.
  */
 export function createSearchHandler(deps: HeroHandlerDeps) {
     return asyncHandler(async (req: Request, res: Response) => {
@@ -130,8 +164,15 @@ export function createSearchHandler(deps: HeroHandlerDeps) {
 }
 
 /**
- * GET /transactions/heroes/stats
- * Get hero transaction stats
+ * Creates the stats handler for Hero Transactions.
+ * Endpoint: GET /transactions/heroes/stats
+ *
+ * Logic:
+ * 1. Check cache for 'hero_stats'.
+ * 2. If cache miss, calculate stats via repository.
+ *
+ * @param {HeroHandlerDeps} deps - Dependencies.
+ * @returns {Function} Express handler.
  */
 export function createStatsHandler(deps: HeroHandlerDeps) {
     return asyncHandler(async (req: Request, res: Response) => {
@@ -145,8 +186,21 @@ export function createStatsHandler(deps: HeroHandlerDeps) {
 }
 
 /**
- * POST /transactions/heroes/burn/:tokenId
- * Burn hero listing (mark as deleted if token is burned on-chain)
+ * Creates the burn handler for Hero Listings.
+ * Endpoint: POST /transactions/heroes/burn/:tokenId
+ *
+ * Logic:
+ * 1. Validate tokenId.
+ * 2. Verify blockchain API is configured.
+ * 3. Query contract for current owner of token.
+ * 4. IF owner is ZERO_ADDRESS (burned), delete listing from DB.
+ * 5. ELSE throw error (cannot burn listing if token exists).
+ *
+ * @param {HeroHandlerDeps} deps - Dependencies.
+ * @returns {Function} Express handler.
+ * @throws {HttpErrors.badRequest} If tokenId is missing or invalid.
+ * @throws {HttpErrors.internalError} If blockchain API is missing.
+ * @throws {HttpErrors.tokenOwnerExists} If token is not burned.
  */
 export function createBurnHandler(deps: HeroHandlerDeps) {
     return asyncHandler(async (req: Request, res: Response) => {
@@ -198,15 +252,16 @@ export function createBurnHandler(deps: HeroHandlerDeps) {
         }
 
         // Delete all create orders for this token
-        await deps.heroTxRepo.deleteAllCreateOrders(Number(tokenId));
+        await deps.heroTxRepo.deleteAllCreateOrders(tokenId.toString());
 
         res.status(200).send();
     });
 }
 
 /**
- * GET /transactions/heroes/version
- * Get hero API version
+ * Creates the version handler.
+ * Endpoint: GET /transactions/heroes/version
+ * @returns {Function} Express handler returning version string.
  */
 export function createVersionHandler() {
     return (_req: Request, res: Response) => {
@@ -214,7 +269,11 @@ export function createVersionHandler() {
     };
 }
 
-// Create all hero handlers
+/**
+ * Aggregates all hero handlers into a single object.
+ * @param {HeroHandlerDeps} deps - Dependencies.
+ * @returns {Object} Object containing all hero handlers.
+ */
 export function createHeroHandlers(deps: HeroHandlerDeps) {
     return {
         search: createSearchHandler(deps),

@@ -21,11 +21,11 @@ const FormItem = styled.div`
     line-height: 1.35;
     letter-spacing: normal;
     text-align: left;
-    color: #fff;
+    color: ${({ theme }) => theme.colors.text};
     min-width: 2.5rem;
   }
   span {
-    color: white;
+    color: ${({ theme }) => theme.colors.text};
     margin-right: 1rem;
   }
   & > div {
@@ -37,15 +37,15 @@ const FormItem = styled.div`
     justify-content: center;
     align-items: center;
     border-radius: 3px;
-    border: solid 1px #3a3f54;
-    background-color: #1d1f2b;
-    color: white;
+    border: solid 1px ${({ theme }) => theme.colors.border};
+    background-color: ${({ theme }) => theme.colors.surface};
+    color: ${({ theme }) => theme.colors.text};
     text-align: center;
 
     &:focus {
       outline: none;
       box-shadow: none;
-      border: 1px solid white;
+      border: 1px solid ${({ theme }) => theme.colors.primary};
     }
   }
 `;
@@ -138,6 +138,7 @@ const FieldPrice: React.FC<FieldPriceProps> = ({ init, options, name, onChange =
                 type="text"
                 value={getAmount(index)}
                 onChange={changeInput(element?.key)}
+                aria-label={`Price ${element.label}`}
               />
             </div>
           </FormItem>

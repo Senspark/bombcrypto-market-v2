@@ -141,10 +141,10 @@ contract BHouseMarket is
         // save order info
         Order memory order = Order(
             _tokenId,
-            msg.sender,
             _price,
             _tokenDetails,
-            block.timestamp
+            msg.sender,
+            uint64(block.timestamp)
         );
 
         // save token address state

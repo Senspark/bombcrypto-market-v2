@@ -20,13 +20,21 @@ import {Logger} from '@/utils/logger';
 
 /**
  * Hero Subscriber Configuration
+ * @interface HeroSubscriberConfig
+ * @extends {SubscriberConfig}
  */
 export interface HeroSubscriberConfig extends SubscriberConfig {
     heroContractAddress: string;
 }
 
 /**
- * HeroSubscriber processes hero marketplace events
+ * HeroSubscriber processes hero marketplace events.
+ * It listens to blockchain logs, parses them into events, and updates the database.
+ *
+ * Responsibilities:
+ * - Listen for CreateOrder, Sold, CancelOrder.
+ * - Sync listing status to DB (listing -> sold/deleted).
+ * - Send notifications for sales.
  */
 export class HeroSubscriber extends BaseSubscriber {
     private readonly heroRepo: IHeroTransactionRepository;
@@ -59,7 +67,12 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Process hero market events
+     * Process a batch of blockchain logs.
+     * Iterates through logs and delegates to processEvent.
+     * Stops if shutdown signal is received.
+     *
+     * @param {Log[]} logs - Array of Ethers logs.
+     * @throws {Error} If processing fails, allowing block retry logic to kick in.
      */
     protected async processEvents(logs: Log[]): Promise<void> {
         for (const log of logs) {
@@ -79,7 +92,10 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Process a single event
+     * Processes a single log entry.
+     * Parses the log into a typed event and routes to specific handlers.
+     *
+     * @param {Log} log - The log to process.
      */
     private async processEvent(log: Log): Promise<void> {
         const event = this.eventParser.parseLog(log, 'hero');
@@ -105,7 +121,14 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Handle CreateOrder event - create listing
+     * Handles the CreateOrder event (New Listing).
+     *
+     * Actions:
+     * 1. Fetches block timestamp.
+     * 2. Identifies payment token (BCOIN/SEN).
+     * 3. Upserts order to DB with status 'listing'.
+     *
+     * @param {CreateOrderEvent} event - The parsed event.
      */
     private async handleCreateOrder(event: CreateOrderEvent): Promise<void> {
         const timestamp = await this.client.getBlockTimestamp(event.blockNumber);
@@ -125,7 +148,7 @@ export class HeroSubscriber extends BaseSubscriber {
             buyerWalletAddress: '',
             heroDetails: event.tokenDetail.toString(),
             amount: event.price.toString(),
-            tokenId: Number(event.tokenId),
+            tokenId: event.tokenId.toString(),
             payToken,
         };
 
@@ -139,7 +162,15 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Handle Sold event - mark as sold
+     * Handles the Sold event (Successful Sale).
+     *
+     * Actions:
+     * 1. Fetches block timestamp.
+     * 2. Identifies payment token.
+     * 3. Upserts order to DB with status 'sold'.
+     * 4. Triggers external notification webhook.
+     *
+     * @param {SoldEvent} event - The parsed event.
      */
     private async handleSold(event: SoldEvent): Promise<void> {
         const timestamp = await this.client.getBlockTimestamp(event.blockNumber);
@@ -159,7 +190,7 @@ export class HeroSubscriber extends BaseSubscriber {
             buyerWalletAddress: event.buyer,
             heroDetails: event.tokenDetail.toString(),
             amount: event.price.toString(),
-            tokenId: Number(event.tokenId),
+            tokenId: event.tokenId.toString(),
             payToken,
         };
 
@@ -181,10 +212,15 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Handle CancelOrder event - delete listing
+     * Handles the CancelOrder event (Listing Removed).
+     *
+     * Actions:
+     * 1. Deletes all active 'create' orders for this token from DB.
+     *
+     * @param {CancelOrderEvent} event - The parsed event.
      */
     private async handleCancelOrder(event: CancelOrderEvent): Promise<void> {
-        await this.heroRepo.deleteAllCreateOrders(Number(event.tokenId));
+        await this.heroRepo.deleteAllCreateOrders(event.tokenId.toString());
 
         this.logger.info('HeroSubscriber processed CancelOrder', {
             tokenId: event.tokenId.toString(),
@@ -192,7 +228,11 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Get payment token name for a token
+     * Resolves the payment token name (e.g., 'BCOIN') for a specific token ID.
+     * Defaults to 'BCOIN' if lookup fails.
+     *
+     * @param {bigint} tokenId - The token ID to check.
+     * @returns {Promise<string>} The token symbol/name.
      */
     private async getPayToken(tokenId: bigint): Promise<string> {
         try {
@@ -210,7 +250,9 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Send notification for sold event
+     * Sends a webhook notification for a sold item.
+     *
+     * @param {SoldEvent} event - The sale event.
      */
     private async sendSoldNotification(event: SoldEvent): Promise<void> {
         if (!this.config.soldNotifyUrl) return;

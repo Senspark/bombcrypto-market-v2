@@ -55,4 +55,6 @@ const Wrap = styled.div`
   min-height: 80vh;
 `;
 
-export default Statistics;
+// ⚡ Bolt: Wrapped in React.memo to prevent unnecessary re-renders.
+// This prevents the entire list from re-rendering when parent state (like search input) changes but list data remains the same.
+export default React.memo(Statistics);

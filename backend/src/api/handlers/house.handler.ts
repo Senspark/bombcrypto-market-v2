@@ -84,8 +84,10 @@ function parseHouseFilterContext(query: Request['query']): HouseTxFilterContext 
     ctx.payToken = parseArrayParam(query.pay_token);
 
     // Number array filters
-    ctx.tokenId = parseNumberArrayParam(query.token_id);
     ctx.rarity = parseNumberArrayParam(query.rarity);
+
+    // String array filters
+    ctx.tokenId = parseArrayParam(query.token_id);
 
     // RHS format filters (e.g., amount=gte:1000000000000000000)
     ctx.amount = parseArrayParam(query.amount);
@@ -188,7 +190,7 @@ export function createBurnHandler(deps: HouseHandlerDeps) {
         }
 
         // Delete all create orders for this token
-        await deps.houseTxRepo.deleteAllCreateOrders(Number(tokenId));
+        await deps.houseTxRepo.deleteAllCreateOrders(tokenId.toString());
 
         res.status(200).send();
     });

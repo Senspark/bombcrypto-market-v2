@@ -25,6 +25,10 @@
 </head>
 <body>
   <h1>RPC Monitor</h1>
+  <div style="margin-bottom: 20px; background: #eee; padding: 10px; border-radius: 4px;">
+    <label for="apiKey">Admin API Key:</label>
+    <input type="password" id="apiKey" placeholder="Enter API Key" onchange="saveApiKey()" style="width: 200px; padding: 5px;">
+  </div>
   <div class="stat">Uptime: <span id="uptime">-</span></div>
   <div class="stat">All RPCs on Cooldown Count: <span id="cooldown">-</span></div>
 
@@ -56,12 +60,38 @@
       return rpc.ready ? 'Ready' : 'Cooldown';
     }
 
+    function loadApiKey() {
+      const key = localStorage.getItem('adminApiKey');
+      if (key) document.getElementById('apiKey').value = key;
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKey').value;
+      localStorage.setItem('adminApiKey', key);
+    }
+
     async function toggleRpc(url) {
-      await fetch('/rpc/toggle', {
+      const apiKey = document.getElementById('apiKey').value;
+      const res = await fetch('/rpc/toggle', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey
+        },
         body: JSON.stringify({ url })
       });
+
+      if (res.status === 403 || res.status === 401) {
+        alert('Unauthorized: Please check your API Key');
+      } else if (res.status === 500) {
+        const data = await res.json();
+        if (data.error && data.error.includes("ADMIN_API_KEY")) {
+           alert(data.error);
+        } else {
+           alert('Server Error');
+        }
+      }
+
       refresh();
     }
 
@@ -119,6 +149,7 @@
       }
     }
 
+    loadApiKey();
     refresh();
     setInterval(refresh, 1000);
   </script>

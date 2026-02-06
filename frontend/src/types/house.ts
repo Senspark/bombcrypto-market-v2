@@ -5,7 +5,7 @@
 export interface BHouse {
   // Database/Transaction fields
   id: number;
-  token_id: number;
+  token_id: string;
   tx_hash: string;
   block_number: number;
   block_timestamp: string;

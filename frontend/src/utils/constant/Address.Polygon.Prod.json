@@ -5,6 +5,6 @@
   "bhouse": "0x2d5f4ba3e4a2d991bd72edbf78f607c174636618",
   "bheromarket": "0xf3a7195920519f8A22cDf84EBB9F74342abE9812",
   "bhousemarket": "0xBb5966daF83ec4D3f168671a464EB18430EeA3be",
-  "rpc": "https://polygon-rpc.com",
+  "rpc": "https://rpc.ankr.com/polygon",
   "api": "https://market.bombcrypto.io/api/polygon/"
 }

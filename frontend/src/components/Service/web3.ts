@@ -59,7 +59,7 @@ const TOKEN_CONFIGS = new Map<string, TokenConfig[]>([
       {
         desc: "mainnet",
         address: "0xFe302B8666539d5046cd9aA0707bB327F5f94C22",
-        rpcUrl: "https://polygon-rpc.com",
+        rpcUrl: "https://rpc.ankr.com/polygon",
       },
       {
         desc: "testnet",
@@ -75,7 +75,7 @@ const TOKEN_CONFIGS = new Map<string, TokenConfig[]>([
       {
         desc: "mainnet",
         address: "0xB2C63830D4478cB331142FAc075A39671a5541dC",
-        rpcUrl: "https://polygon-rpc.com",
+        rpcUrl: "https://rpc.ankr.com/polygon",
       },
       {
         desc: "testnet",
@@ -107,7 +107,7 @@ const TOKEN_CONFIGS = new Map<string, TokenConfig[]>([
       {
         desc: "mainnet",
         address: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-        rpcUrl: "https://polygon-rpc.com",
+        rpcUrl: "https://rpc.ankr.com/polygon",
       },
       {
         desc: "testnet",

@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import styled from "styled-components";
 import { List } from "../components/icons/index";
+import Chart from "../components/icons/chart";
+import PulseDashboard from "../components/dashboard/PulseDashboard";
 import Slider from "../components/forms/range";
 import GroupCheckBox from "../components/forms/checkbox";
 import GroupCheckBoxToken from "../components/forms/checkboxToken";
@@ -10,7 +12,6 @@ import Ability from "../components/forms/ability";
 import BeHeroCard from "../components/list/market-bhero";
 import { NavLink, useHistory, useLocation } from "react-router-dom";
 import {
-  debounce,
   convertFilter,
   convertQueryToObject,
   getAPI,
@@ -55,6 +56,10 @@ const comp: ViewComp[] = [
   {
     value: "list",
     icon: <List />,
+  },
+  {
+    value: "pulse",
+    icon: <Chart />,
   },
 ];
 
@@ -122,9 +127,10 @@ const Statistics: React.FC = () => {
   const [params, setParams] = useState<ParamsState>(init);
   const [view, setView] = useState("list");
   const [data, setData] = useState<ListItem[] | null>(null);
-  //const [dataShield, setDataShield] = useState([]);
   const [preHeroS, setPreHeroS] = useState<number[]>([]);
   const payload = useRef<ParamsState>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchRef = useRef<(params: ParamsState) => Promise<void>>();
 
   const options = [
     { label: "Common", value: 0 },
@@ -145,16 +151,33 @@ const Statistics: React.FC = () => {
     { id: 1, label: "Max", key: "lte" },
   ];
 
-  const onChange = debounce((name: string, value: unknown) => {
-    if (params[name] === params.page) return;
-    setData(null);
-    if (name === "token_id") {
-      params.page = 1;
-    }
-    params[name] = value;
-    payload.current = params;
-    fetch(params);
-  }, 1000);
+  const handleParamChange = useCallback((name: string, value: unknown) => {
+    setParams((prev) => {
+      if (_.isEqual(prev[name], value)) return prev;
+
+      const next = { ...prev, [name]: value };
+
+      if (name === "token_id") {
+        next.page = 1;
+      }
+
+      payload.current = next;
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      const delay = name === "token_id" ? 500 : 100;
+
+      timerRef.current = setTimeout(() => {
+        if (fetchRef.current) {
+          fetchRef.current(next);
+        }
+      }, delay);
+
+      return next;
+    });
+  }, []);
 
   const fetch = async (params: ParamsState) => {
     if (unount) return;
@@ -186,7 +209,12 @@ const Statistics: React.FC = () => {
         total_pages,
         size,
       }));
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+      if (data === null) {
+        setData([]);
+      }
+    }
 
     if (timmer) clearTimeout(timmer);
     timmer = setTimeout(() => {
@@ -194,9 +222,13 @@ const Statistics: React.FC = () => {
     }, 60000);
   };
 
+  useEffect(() => {
+    fetchRef.current = fetch;
+  }, [fetch]);
+
   const onChangeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
-    onChange("order_by", value);
+    handleParamChange("order_by", value);
   };
 
   const change = (name: string, value: unknown) => {
@@ -207,28 +239,6 @@ const Statistics: React.FC = () => {
     fetch(params);
   };
 
-  useEffect(() => {
-    if (preHeroS.length !== 0) {
-      // FIXME: nhanc18 check sau
-      // fetchShieldData(preHeroS);
-    }
-  }, [preHeroS.length && preHeroS[0]]);
-
-  // const fetchShieldData = async (data) => {
-  //   const resp = await axios.post("https://api-test.bombcrypto.io/shield", {
-  //     headers: {
-  //       "Access-Control-Allow-Origin": true,
-  //       accept: "application/json",
-  //     },
-  //     ids: data,
-  //   });
-  //   if (resp.data?.message) {
-  //     setDataShield(resp.data?.message);
-  //   } else {
-  //     setDataShield([]);
-  //   }
-  //   return resp;
-  // };
   useEffect(() => {
     unount = false;
     fetch(params);
@@ -246,16 +256,17 @@ const Statistics: React.FC = () => {
       <TabTitle>
         {tabs.map((element) => (
           <Element activeClassName="active" key={element.label} to={element.to}>
-            <img src={element.icon} alt="" />
+            <img src={element.icon} alt={element.label + " Icon"} />
             {element.label}
           </Element>
         ))}
         <Option>
-          <Search onChange={onChange} name="token_id" />
+          <Search onChange={handleParamChange} name="token_id" aria-label="Search Token ID" />
           <div className="select">
             <select
-              name=""
-              id=""
+              name="order_by"
+              id="order_by_select"
+              aria-label="Sort by"
               onChange={onChangeSelect}
               defaultChecked={sortby[0] as unknown as boolean}
             >
@@ -270,6 +281,14 @@ const Statistics: React.FC = () => {
             <div
               className={view === element.value ? "item active" : "item"}
               key={element.value}
+              role="button"
+              tabIndex={0}
+              aria-label={`Switch to ${element.value} view`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  setView(element.value);
+                }
+              }}
               onClick={() => {
                 setView(element.value);
               }}
@@ -286,20 +305,20 @@ const Statistics: React.FC = () => {
             options={optionsToken}
             name="pay_token"
             init={params.pay_token}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
           <div className="title">Price</div>
           <FieldPrice
             options={optionsPrice}
             name="amount"
             init={params.amount}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
           <div className="title">Hero Type</div>
           <div className="select" style={{ width: "50%" }}>
             <Select
               name="s_ability"
-              onChange={onChange}
+              onChange={handleParamChange}
               defaultValue={params.s_ability}
               options={[
                 { value: "", label: "All" },
@@ -313,7 +332,7 @@ const Statistics: React.FC = () => {
             options={options}
             name="rarity"
             init={params.rarity}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
 
           <div className="title">Stats</div>
@@ -325,7 +344,7 @@ const Statistics: React.FC = () => {
                 max={5}
                 name="level"
                 init={params.level as unknown as string[]}
-                onChange={onChange}
+                onChange={handleParamChange}
               />
             </div>
           </div>
@@ -334,35 +353,35 @@ const Statistics: React.FC = () => {
             label="Power"
             name="bomb_power"
             init={params.bomb_power}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
           <Field
             label="Speed"
             name="speed"
             init={params.speed}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
           <Field
             label="Stamina"
             name="stamina"
             init={params.stamina}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
           <Field
             label="Bomb num"
             name="bomb_count"
             init={params.bomb_count}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
           <Field
             label="Range"
             name="bomb_range"
             init={params.bomb_range}
-            onChange={onChange}
+            onChange={handleParamChange}
           />
 
           <div className="title">Ability</div>
-          <Ability init={params.ability as unknown as number[]} onChange={onChange} name="ability" />
+          <Ability init={params.ability as unknown as number[]} onChange={handleParamChange} name="ability" />
         </div>
         <div className="right">
           {params.total_count !== 0 && (
@@ -374,12 +393,16 @@ const Statistics: React.FC = () => {
             </div>
           )}
 
-          {data && (
-            <BeHeroCard
-              data={data as any}
-              view={view as "list" | "card"}
-              network={network}
-            />
+          {data && view === "pulse" ? (
+            <PulseDashboard data={data} totalCount={params.total_count} />
+          ) : (
+            data && (
+              <BeHeroCard
+                data={data as any}
+                view={view as "list" | "card"}
+                network={network}
+              />
+            )
           )}
           <WrapPagination>
             <Pagination
@@ -398,16 +421,16 @@ const Statistics: React.FC = () => {
 const Element = styled(NavLink)`
   padding: 1rem 1.875rem;
   font-size: 2rem;
-  color: #fff;
+  color: ${({ theme }) => theme.colors.text};
   display: flex;
   align-items: center;
   opacity: 0.3;
   cursor: pointer;
   transition: opacity 0.3s ease-in-out;
-  font-family: "agency-fb-regular", sans-serif;
+  font-family: ${({ theme }) => theme.fonts.primary};
   transition: 0.3s ease-in-out;
   &:hover {
-    color: white !important;
+    color: ${({ theme }) => theme.colors.text} !important;
     opacity: 1;
   }
 
@@ -424,7 +447,7 @@ const Element = styled(NavLink)`
       display: block;
       width: 100%;
       height: 0.375rem;
-      background-color: #ff973a;
+      background-color: ${({ theme }) => theme.colors.primary};
       position: absolute;
       bottom: 0;
       left: 0;
@@ -439,7 +462,7 @@ const Option = styled.div`
   padding-right: 1.5rem;
   .select {
     padding-right: 1rem;
-    background: #3a3f54;
+    background: ${({ theme }) => theme.colors.surfaceLighter};
     margin: 0px 6px;
     cursor: pointer;
     transition: background 0.3s ease-in-out;
@@ -447,18 +470,18 @@ const Option = styled.div`
     select {
       height: 2.625rem;
       padding: 0 1.625rem;
-      background: #3a3f54;
+      background: ${({ theme }) => theme.colors.surfaceLighter};
       border: none;
-      color: white;
+      color: ${({ theme }) => theme.colors.text};
       transition: background 0.3s ease-in-out;
       &:focus {
         outline: none;
       }
     }
     &:hover {
-      background: #131e4b;
+      background: ${({ theme }) => theme.colors.background};
       select {
-        background: #131e4b;
+        background: ${({ theme }) => theme.colors.background};
       }
     }
   }
@@ -470,16 +493,19 @@ const Option = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #3a3f54;
+    background: ${({ theme }) => theme.colors.surfaceLighter};
     margin: 0px 6px;
     cursor: pointer;
     transition: background 0.3s ease-in-out;
     svg {
-      fill: white;
+      fill: ${({ theme }) => theme.colors.text};
     }
     &:hover,
     &.active {
-      background: #131e4b;
+      background: ${({ theme }) => theme.colors.background};
+    }
+    &:focus {
+       outline: 2px solid ${({ theme }) => theme.colors.primary};
     }
   }
 `;
@@ -488,6 +514,12 @@ const ContentTab = styled.div`
   width: 100%;
   border-top: none;
   display: flex;
+  flex-direction: column;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: row;
+  }
+
   .loading-in-local {
     & > div {
       min-height: 65.438rem;
@@ -495,29 +527,34 @@ const ContentTab = styled.div`
   }
 
   .left {
-    flex: 0 0 23rem;
-    width: 23rem;
-    height: calc(115vh);
-    border-right: 1px solid #3f445b;
+    width: 100%; // Mobile first
     padding: 2rem 1.375rem;
-    position: sticky;
-    top: 0;
-    @media (max-width: 1440px) {
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+
+    @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
       flex: 0 0 23rem;
       width: 23rem;
+      height: calc(115vh);
+      border-right: 1px solid ${({ theme }) => theme.colors.border};
+      border-bottom: none;
+      position: sticky;
+      top: 0;
     }
+
     .title {
-      color: #7680ab;
+      color: ${({ theme }) => theme.colors.secondary};
       margin: 1.063rem 0rem;
       font-size: 1.594rem;
-      font-family: "agency-fb-regular", sans-serif;
+      font-family: ${({ theme }) => theme.fonts.primary};
     }
     .level {
       display: flex;
       & > span {
         margin-right: 1rem;
         font-size: 1rem;
-        color: white;
+        color: ${({ theme }) => theme.colors.text};
         transform: translateY(-10px);
       }
       & > div {
@@ -529,9 +566,9 @@ const ContentTab = styled.div`
     padding: 1.688rem 1.25rem;
     flex: 1;
     .right-title {
-      font-family: "agency-fb-regular", sans-serif;
+      font-family: ${({ theme }) => theme.fonts.primary};
       font-size: 2.031rem;
-      color: #fff;
+      color: ${({ theme }) => theme.colors.text};
       margin-bottom: 1.563rem;
     }
   }
@@ -541,7 +578,8 @@ const TabTitle = styled.div`
   display: flex;
   width: 100%;
   overflow: hidden;
-  border-bottom: 1px solid #3f445b;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  flex-wrap: wrap; // Allow wrapping on small screens
 `;
 
 const Recently = styled.div`

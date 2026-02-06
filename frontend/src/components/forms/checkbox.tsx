@@ -21,9 +21,10 @@ const CheckBox = styled.div`
   .box {
     width: 1.688rem;
     height: 1.688rem;
-    background: #3a3f54;
+    background: ${({ theme }) => theme.colors.surfaceLighter};
     cursor: pointer;
     position: relative;
+    border: 1px solid ${({ theme }) => theme.colors.border};
     &:after {
       content: "";
       position: absolute;
@@ -32,13 +33,14 @@ const CheckBox = styled.div`
       width: 75%;
       height: 75%;
       transform: translate(-50%, -50%);
-      background: #ff973a;
+      background: ${({ theme }) => theme.colors.primary};
       opacity: 0;
       border-radius: 3px;
     }
   }
   input:checked + label {
     .box {
+      border-color: ${({ theme }) => theme.colors.primary};
       &:after {
         opacity: 1;
       }
@@ -46,8 +48,9 @@ const CheckBox = styled.div`
   }
   label {
     display: flex;
-    color: white;
+    color: ${({ theme }) => theme.colors.text};
     font-size: 1.188rem;
+    cursor: pointer;
     .content {
       margin-left: 0.75rem;
       white-space: nowrap;

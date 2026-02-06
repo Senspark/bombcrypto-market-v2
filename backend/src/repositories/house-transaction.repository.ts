@@ -23,7 +23,7 @@ interface HouseOrderRow {
     seller_wallet_address: string;
     buyer_wallet_address: string;
     amount_text: string;
-    token_id: number;
+    token_id: string;
     pay_token: string;
     rarity: number;
     recovery: number;
@@ -178,7 +178,7 @@ export class HouseTransactionRepository implements IHouseTransactionRepository {
         return rowToHouseTxRepr(result.rows[0]);
     }
 
-    async getByTokenId(tokenId: number): Promise<HouseTxRepr | null> {
+    async getByTokenId(tokenId: string): Promise<HouseTxRepr | null> {
         const sql = `
       SELECT ${HOUSE_SELECT_COLUMNS}
       FROM house_orders
@@ -191,7 +191,7 @@ export class HouseTransactionRepository implements IHouseTransactionRepository {
         return rowToHouseTxRepr(result.rows[0]);
     }
 
-    async deleteCreateOrder(tokenId: number, blockNumber: number): Promise<void> {
+    async deleteCreateOrder(tokenId: string, blockNumber: number): Promise<void> {
         const sql = `
       UPDATE house_orders
       SET deleted = true, updated_at = NOW()
@@ -200,7 +200,7 @@ export class HouseTransactionRepository implements IHouseTransactionRepository {
         await this.db.query(sql, [tokenId, blockNumber]);
     }
 
-    async deleteAllCreateOrders(tokenId: number): Promise<void> {
+    async deleteAllCreateOrders(tokenId: string): Promise<void> {
         const sql = `
       UPDATE house_orders
       SET deleted = true, updated_at = NOW()
@@ -284,7 +284,7 @@ export class HouseTransactionRepository implements IHouseTransactionRepository {
 
     private async softDeleteListingOrders(
         client: PoolClient,
-        tokenId: number,
+        tokenId: string,
         blockNumber: number
     ): Promise<void> {
         const sql = `
@@ -297,7 +297,7 @@ export class HouseTransactionRepository implements IHouseTransactionRepository {
 
     private async pruneOldListingOrders(
         client: PoolClient,
-        tokenId: number
+        tokenId: string
     ): Promise<void> {
         const sql = `
       UPDATE house_orders

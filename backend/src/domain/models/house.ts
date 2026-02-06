@@ -20,7 +20,7 @@ export interface HouseTxReq {
     status: string;
     houseDetails: string;
     amount: string;
-    tokenId: number;
+    tokenId: string;
     payToken: string;
 }
 
@@ -34,7 +34,7 @@ export interface HouseTxRepr {
     sellerWalletAddress: string;
     buyerWalletAddress: string;
     amount: string;
-    tokenId: number;
+    tokenId: string;
     payToken: string;
     rarity: number;
     recovery: number;
@@ -52,7 +52,7 @@ export interface HouseTxFilterContext extends PaginationQuery {
     buyerWalletAddress: string[];
     status: string[];
     txHash: string[];
-    tokenId: number[];
+    tokenId: string[];
     rarity: number[];
     payToken: string[];
     amount: string[]; // in rhs colon form: "gte:1000000000000000000"

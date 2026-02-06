@@ -16,13 +16,13 @@ export interface IHeroTransactionRepository {
     getById(id: number): Promise<HeroTxRepr | null>;
 
     // Get hero transaction by token ID
-    getByTokenId(tokenId: number): Promise<HeroTxRepr | null>;
+    getByTokenId(tokenId: string): Promise<HeroTxRepr | null>;
 
     // Delete create order (soft delete when sold/cancelled)
-    deleteCreateOrder(tokenId: number, blockNumber: number): Promise<void>;
+    deleteCreateOrder(tokenId: string, blockNumber: number): Promise<void>;
 
     // Delete all create orders for a token (when cancelled)
-    deleteAllCreateOrders(tokenId: number): Promise<void>;
+    deleteAllCreateOrders(tokenId: string): Promise<void>;
 
     // Count orders by type and time window (hours)
     countOrders(orderType: string, windowHours: number): Promise<number>;
@@ -54,13 +54,13 @@ export interface IHouseTransactionRepository {
     getById(id: number): Promise<HouseTxRepr | null>;
 
     // Get house transaction by token ID
-    getByTokenId(tokenId: number): Promise<HouseTxRepr | null>;
+    getByTokenId(tokenId: string): Promise<HouseTxRepr | null>;
 
     // Delete create order (soft delete when sold/cancelled)
-    deleteCreateOrder(tokenId: number, blockNumber: number): Promise<void>;
+    deleteCreateOrder(tokenId: string, blockNumber: number): Promise<void>;
 
     // Delete all create orders for a token (when cancelled)
-    deleteAllCreateOrders(tokenId: number): Promise<void>;
+    deleteAllCreateOrders(tokenId: string): Promise<void>;
 
     // Count orders by type and time window (hours)
     countOrders(orderType: string, windowHours: number): Promise<number>;

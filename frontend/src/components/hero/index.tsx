@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { memo } from "react";
 import styled from "styled-components";
 import { renderURLHero } from "../../utils/helper";
 
@@ -25,21 +25,14 @@ interface HeroIconProps {
   iconStyle?: React.CSSProperties;
 }
 
-export const HeroIcon: React.FC<HeroIconProps> = ({
+const HeroIconComponent: React.FC<HeroIconProps> = ({
   data,
   heroType = "L",
   iconStyle = {}
 }) => {
-  const [iconUrl, setIconUrl] = useState("");
-
-  useEffect(() => {
-    if (heroType === "S") {
-      setIconUrl("/icons/HeroSIcon.png");
-      return;
-    }
-    setIconUrl("/icons/Icon_L.png");
-    return;
-  }, [data, heroType]);
+  // Optimization: Calculate iconUrl synchronously to avoid effect/state overhead
+  // This prevents double rendering on mount and simplifies the component logic
+  const iconUrl = heroType === "S" ? "/icons/HeroSIcon.png" : "/icons/Icon_L.png";
 
   return (
     <IconHero>
@@ -52,3 +45,7 @@ export const HeroIcon: React.FC<HeroIconProps> = ({
     </IconHero>
   );
 };
+
+// Optimization: Use React.memo to prevent unnecessary re-renders when parent components update
+// but props (data, heroType) remain unchanged.
+export const HeroIcon = memo(HeroIconComponent);

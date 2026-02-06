@@ -5,12 +5,16 @@ import MarketBHouse from "./views/market-bhouse";
 import Header from "./components/layouts/Header/index";
 import SmartContract from "./context/smc";
 import AccountProvider, { useAccount } from "./context/account";
+import { CartProvider } from "./context/cart";
 import Account from "./views/account";
 import DetailHero from "./views/market/bhero-id";
 import DetailHouse from "./views/market/bhouse-id";
 import NotificationProvider from "./context/notification";
 import { AnimatePresence } from "framer-motion";
 import AnimationLoad from "./components/common/animation";
+import { ThemeProvider } from "styled-components";
+import { theme } from "./styles/theme";
+import { GlobalStyles } from "./styles/GlobalStyles";
 import {
   BrowserRouter as Router,
   Switch,
@@ -24,21 +28,24 @@ import "./App.css";
 
 function App(): JSX.Element {
   return (
-    <React.Fragment>
+    <ThemeProvider theme={theme}>
+      <GlobalStyles />
       <NotificationProvider>
         <AccountProvider>
           <SmartContract>
-            <Router>
-              <Header />
-              <div style={{ padding: 10 }}></div>
-              <AnimatePresence>
-                <ContentRouter />
-              </AnimatePresence>
-            </Router>
+            <CartProvider>
+              <Router>
+                <Header />
+                <div style={{ padding: 10 }}></div>
+                <AnimatePresence>
+                  <ContentRouter />
+                </AnimatePresence>
+              </Router>
+            </CartProvider>
           </SmartContract>
         </AccountProvider>
       </NotificationProvider>
-    </React.Fragment>
+    </ThemeProvider>
   );
 }
 

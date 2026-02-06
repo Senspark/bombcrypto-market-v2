@@ -5,6 +5,9 @@ import "./IBEP20.sol";
 import "./IERC721.sol";
 
 // @title BHero Market
+/// @title MarketCore
+/// @notice Abstract base contract for Bombcrypto Marketplace functionality.
+/// @dev Handles order creation, buying, and cancellation logic.
 abstract contract MarketCore {
     using SafeMath for uint256;
 
@@ -25,26 +28,29 @@ abstract contract MarketCore {
     // Represents an order
     struct Order {
         uint256 tokenId;
-        // Current owner of NFT
-        address seller;
         // Listing price
         uint256 price;
         // item Details
         uint256 tokenDetail;
+        // Current owner of NFT
+        address seller;
         // Time when order started
-        uint256 startedAt;
+        // GAS: Packed with seller to save 1 storage slot (20k gas)
+        uint64 startedAt;
     }
 
     IBEP20 public bcoinContract;
     IERC721 public nftContract;
     mapping(uint256 => Order) tokenIdToOrder;
 
+    /// @notice Emitted when a new order is created.
     event CreateOrder(
         uint256 tokenId,
         uint256 price,
         uint256 tokenDetail,
         address seller
     );
+    /// @notice Emitted when an order is successfully filled (sold).
     event Sold(
         uint256 tokenId,
         uint256 price,
@@ -52,6 +58,7 @@ abstract contract MarketCore {
         address seller,
         address buyer
     );
+    /// @notice Emitted when an order is cancelled by the seller.
     event CancelOrder(uint256 tokenId);
 
     // @dev Returns true if the claimant owns the token.
@@ -80,9 +87,10 @@ abstract contract MarketCore {
         nftContract.safeTransferFrom(address(this), _receiver, _tokenId);
     }
 
-    // @dev Create an order onto the market.
-    // @param _tokenId The ID of the token to be put on market.
-    // @param _order Order to create.
+    /// @dev Internal function to create an order.
+    /// @param _tokenId The ID of the token to be listed.
+    /// @param _order The Order struct containing listing details.
+    /// @notice Checks if order already exists. Emits CreateOrder event.
     function _createOrder(uint256 _tokenId, Order memory _order) internal {
         // check if it exists
         Order storage __order = tokenIdToOrder[_tokenId];
@@ -98,7 +106,9 @@ abstract contract MarketCore {
         );
     }
 
-    // @dev Cancels an order.
+    /// @dev Internal function to cancel an order.
+    /// @param _tokenId The ID of the token to remove from market.
+    /// @notice Removes order from storage and emits CancelOrder.
     function _cancelOrder(uint256 _tokenId) internal {
         _removeOrder(_tokenId);
         // remove token pay state
@@ -107,7 +117,11 @@ abstract contract MarketCore {
         emit CancelOrder(_tokenId);
     }
 
-    // @dev Computes the price and transfers winnings.
+    /// @dev Internal function to execute a purchase.
+    /// @param _tokenId The ID of the token to buy.
+    /// @param _price The price offered by the buyer.
+    /// @notice Validates order existence, price match, and approvals. Transfers funds (minus tax) and NFT.
+    /// Complexity: Handles fee calculation and safe transfer of both ERC20 and ERC721.
     function _buy(uint256 _tokenId, uint256 _price) internal {
         Order storage _order = tokenIdToOrder[_tokenId];
         require(_isOnMarket(_order), "order not existed");

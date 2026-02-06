@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import styled from "styled-components";
 import GroupCheckBox from "../components/forms/checkbox";
+import { List } from "../components/icons/index";
+import Chart from "../components/icons/chart";
+import PulseDashboard from "../components/dashboard/PulseDashboard";
 import { NavLink, useHistory } from "react-router-dom";
 import { debounce, convertFilter, convertQueryToObject } from "../utils/helper";
 import Pagination from "../components/layouts/Pagination";
@@ -34,6 +37,22 @@ const tabs: Tab[] = [
     value: "behero",
     icon: "/icons/bhouse.webp",
     to: "/market/bhouse",
+  },
+];
+
+interface ViewComp {
+  value: string;
+  icon: React.ReactNode;
+}
+
+const comp: ViewComp[] = [
+  {
+    value: "list",
+    icon: <List />,
+  },
+  {
+    value: "pulse",
+    icon: <Chart />,
   },
 ];
 
@@ -141,7 +160,12 @@ const Statistics: React.FC = () => {
         total_pages,
         size,
       }));
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+      if (data === null) {
+        setData([]);
+      }
+    }
 
     if (timmer) clearTimeout(timmer);
     timmer = setTimeout(() => {
@@ -194,6 +218,25 @@ const Statistics: React.FC = () => {
               ))}
             </select>
           </div>
+          {comp.map((element) => (
+            <div
+              className={view === element.value ? "item active" : "item"}
+              key={element.value}
+              role="button"
+              tabIndex={0}
+              aria-label={`Switch to ${element.value} view`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  setView(element.value);
+                }
+              }}
+              onClick={() => {
+                setView(element.value);
+              }}
+            >
+              {element.icon}
+            </div>
+          ))}
         </Option>
       </TabTitle>
       <ContentTab>
@@ -247,7 +290,11 @@ const Statistics: React.FC = () => {
             </div>
           )}
 
-          {data && <BeHeroHouse data={data as any} />}
+          {data && view === "pulse" ? (
+            <PulseDashboard data={data} totalCount={params.total_count} />
+          ) : (
+            data && <BeHeroHouse data={data as any} />
+          )}
           <WrapPagination>
             <Pagination
               onChange={change}

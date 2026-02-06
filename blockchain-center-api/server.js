@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { handleGetLogs } from "./handlers/getLogs.js";
@@ -14,6 +15,33 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
+
+// Auth middleware
+const checkAuth = (req, res, next) => {
+  const adminKey = process.env.ADMIN_API_KEY;
+  if (!adminKey) {
+    console.error("ADMIN_API_KEY not set. Blocking sensitive endpoint.");
+    return res.status(500).json({ error: "Server misconfigured: ADMIN_API_KEY not set" });
+  }
+
+  const apiKey = req.headers["x-api-key"];
+  if (!apiKey) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const keyBuffer = Buffer.from(apiKey);
+    const adminBuffer = Buffer.from(adminKey);
+
+    if (keyBuffer.length !== adminBuffer.length || !crypto.timingSafeEqual(keyBuffer, adminBuffer)) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+  } catch (error) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  next();
+};
 
 // Logs all incoming requests and outgoing responses
 app.use((req, res, next) => {
@@ -43,7 +71,7 @@ app.get("/web", (req, res) => {
   res.sendFile(path.join(__dirname, "web", "index.html"));
 });
 app.get("/status", handleAnalytics);
-app.post("/rpc/toggle", handleToggleRpcPause);
+app.post("/rpc/toggle", checkAuth, handleToggleRpcPause);
 
 // For EVM
 app.get("/latestBlockNumber", handleLatestBlockNumber);

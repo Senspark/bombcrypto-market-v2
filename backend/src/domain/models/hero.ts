@@ -29,7 +29,7 @@ export interface HeroTxReq {
     status: string;
     heroDetails: string;
     amount: string;
-    tokenId: number;
+    tokenId: string;
     payToken: string;
 }
 
@@ -43,7 +43,7 @@ export interface HeroTxRepr {
     sellerWalletAddress: string;
     buyerWalletAddress: string;
     amount: string;
-    tokenId: number;
+    tokenId: string;
     payToken: string;
     rarity: number;
     level: number;
@@ -71,7 +71,7 @@ export interface HeroTxFilterContext extends PaginationQuery {
     status: string[];
     txHash: string[];
     rarity: number[];
-    tokenId: number[];
+    tokenId: string[];
     level: string[]; // in rhs colon form: "gte:20"
     stamina: number;
     speed: number;
