@@ -1,50 +1,34 @@
-# bombcrypto_marketplace
+# Bombcrypto Marketplace
 
-## Architect
-![image architect](./docs/marketplace.png)
+NFT marketplace for Hero and House assets on BSC & Polygon.
 
-
-Principles:
-
-- All data is read from blockchain, do not trust anything from clients.
-- Indexer must have catch-up recovery mechanism, and failed-over, incase we lose connection with Blockchain, or cannot write to DB.
-- All security logics relied on the Smart Contract.
-
-##
-- Deploy Frontend :
-
-- Deploy API:
-
-- Deploy Indexer:
-
-- Deploy SMC: 
-the private key of the deployer is in .secret file
+## Architecture
 
 ```
-cd smc
-npm i 
-npx truffle compile --all
+Frontend (React) ---> Smart Contracts (BSC/Polygon)
+                            |
+                      Event Logs
+                            |
+Backend Subscribers ---> PostgreSQL <--- Backend API
+        |                                    |
+  blockchain-center-api          detect-transfer
+        |
+   Blockchain RPCs
 ```
 
-Please review migration files one by one, and make sure adjust the correct smc address.
-```
-npx truffle migrate --network testnet 
-```
----
+## Project Structure
 
-## Flow Inventory
-![image architect](./docs/flow_inventory.png)
+| Directory | Description |
+|---|---|
+| `frontend/` | Marketplace web UI — React, TypeScript, Vite |
+| `backend/` | REST API + blockchain event subscribers — TypeScript, Express, ethers.js |
+| `smc/` | Marketplace smart contracts — Solidity, Truffle, OpenZeppelin |
+| `detect-transfer/` | Detects NFT transfers to invalidate stale listings — TypeScript, ethers.js |
+| `blockchain-center-api/` | RPC proxy to cache and optimize blockchain calls — Node.js, Express |
+| `db/` | PostgreSQL schema definitions |
 
----
+## Prerequisites
 
-## Flow CreateOrder (sell)
-
-![image architect](./docs/flow_create_order.png)
-
----
-
-## Flow Buy
-
-Note: the smc allows a user to buy hisown order, if he willing to.
-
-![image architect](./docs/flow_buy.png)
+- Node.js
+- PostgreSQL
+- Redis
