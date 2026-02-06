@@ -1,0 +1,22 @@
+{
+  "getLogs": {
+    "polygon": [
+      "https://your-polygon-rpc-1",
+      "https://your-polygon-rpc-2"
+    ],
+    "bsc": [
+      "https://your-bsc-rpc-1",
+      "https://your-bsc-rpc-2"
+    ]
+  },
+  "general": {
+    "polygon": [
+      "https://your-polygon-general-rpc-1",
+      "https://your-polygon-general-rpc-2"
+    ],
+    "bsc": [
+      "https://your-bsc-general-rpc-1",
+      "https://your-bsc-general-rpc-2"
+    ]
+  }
+}

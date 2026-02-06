@@ -1,0 +1,37 @@
+{
+  "name": "detect-transfer-ts",
+  "version": "1.0.0",
+  "description": "NFT marketplace order verification service - monitors transfers and marks deleted listings",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "start": "node dist/main.js",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "nft",
+    "marketplace",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "^6.16.0",
+    "ioredis": "^5.6.1",
+    "pg": "^8.11.3",
+    "winston": "^3.19.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/pg": "^8.10.7",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2",
+    "vitest": "^3.2.4"
+  }
+}

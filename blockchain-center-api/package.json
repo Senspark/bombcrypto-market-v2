@@ -1,0 +1,9 @@
+{
+  "name": "test-ethers",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "ethers": "^6",
+    "express": "^4"
+  }
+}

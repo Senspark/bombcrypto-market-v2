@@ -1,0 +1,25 @@
+{
+  "name": "smc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@openzeppelin/truffle-upgrades": "^1.15.0",
+    "truffle": "^5.4.22"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^6.20.0",
+    "@openzeppelin/contracts": "^4.4.0",
+    "@openzeppelin/contracts-upgradeable": "^4.4.0",
+    "@truffle/hdwallet-provider": "^1.7.0",
+    "@umaprotocol/truffle-ledger-provider": "^1.0.5",
+    "truffle-contract-size": "^2.0.1",
+    "truffle-plugin-verify": "^0.5.20"
+  }
+}

@@ -1,0 +1,231 @@
+@import url("https://fonts.googleapis.com/css2?family=Maven+Pro:wght@400;500;600;700;800;900&display=swap");
+
+@font-face {
+  font-family: "agency-fb-regular";
+  src: url("./assets/font/AGENCYR.TTF");
+}
+
+
+html,
+body {
+  font-family: "Maven Pro", sans-serif;
+  background-color: #242735;
+  font-size: 10px;
+  /* width: 100vw; */
+  /* min-width: 1000px; */
+}
+
+.mavenpro {
+  font-family: "Maven Pro", sans-serif;
+}
+.agency {
+  font-family: "agency-fb-regular", sans-serif;
+}
+
+.mr-auto {
+  margin-right: auto;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+button {
+  transition: opacity 0.3s ease-in-out;
+}
+
+
+@media screen and (min-width: 1000px) {
+  html,
+  body {
+    font-size: 10px;
+  }
+}
+
+@media screen and (min-width: 1440px) {
+  html,
+  body {
+    font-size: 12px;
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  html,
+  body {
+    font-size: 16px;
+  }
+}
+
+/* @media screen and (max-width: 1367px) {
+  html,
+  body {
+    font-size: 12px;
+  }
+} */
+
+.hover {
+  transition: 0.2s ease-in-out;
+}
+.hover:hover {
+  transform: translateY(-2px);
+  box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.custom-form .ant-checkbox .ant-checkbox-inner {
+  color: white !important;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.open-modal {
+  /* overflow-y: hidden; */
+}
+
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.level {
+  color: greenyellow;
+  font-weight: bold;
+}
+
+.skill span {
+  white-space: nowrap;
+  color: white;
+
+  margin-left: 0.2rem;
+}
+.skill span em {
+  font-style: normal;
+  color: greenyellow;
+  margin-left: 0.2rem;
+}
+
+.modals-enter {
+  opacity: 0;
+}
+.modals-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.modals-exit {
+  opacity: 1;
+}
+.modals-exit-active {
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.item-layout .action span {
+  max-width: 68px;
+}
+
+.action .top span {
+  display: block;
+  max-width: 75px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+}
+.action,
+.coin {
+  position: relative;
+}
+
+.toolip {
+  opacity: 0;
+}
+
+.action span:hover + .toolip {
+  opacity: 1;
+}
+
+.coin span:hover + .toolip {
+  opacity: 1;
+}
+
+.action .toolip {
+  position: absolute;
+  bottom: 100%;
+  left: 10%;
+  display: block;
+  background: black;
+
+  margin-bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  color: rgb(34, 20, 20);
+  text-align: center;
+  z-index: 1;
+  -webkit-transition: opacity 0.3s;
+  transition: opacity 0.3s;
+  background: #fff;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  font-size: 1rem;
+  font-weight: bold;
+  visibility: hidden;
+  min-width: 120px;
+  color: rgb(102, 102, 102);
+  text-align: center;
+  border-radius: 3px;
+  padding: 4px 10px;
+  position: absolute;
+  z-index: 1;
+  top: 95%;
+  left: 50%;
+  margin-left: -55px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: #ffffff;
+  font-family: "agency-fb-regular", sans-serif;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #555 transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/*web3 Modal*/
+.web3modal-modal-container {
+  align-items: start;
+  margin-top: 100px;
+}
+
+.web3modal-modal-card {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  max-width: 500px;
+}

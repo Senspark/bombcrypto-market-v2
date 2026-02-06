@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RPC Monitor</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; table-layout: fixed; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    th { background: #f0f0f0; }
+    .col-url { width: 400px; }
+    .col-status { width: 90px; }
+    .col-cooldown { width: 80px; }
+    .col-num { width: 70px; }
+    .col-action { width: 80px; text-align: center; }
+    .stat { font-size: 1.2em; margin: 10px 0; }
+    .ready { color: green; }
+    .not-ready { color: red; }
+    .in-flight { color: orange; }
+    .paused { color: gray; }
+    h2 { margin-top: 30px; }
+    .btn { padding: 2px 8px; cursor: pointer; }
+    .btn-pause { background: #ffcccc; border: 1px solid #cc0000; }
+    .btn-resume { background: #ccffcc; border: 1px solid #00cc00; }
+  </style>
+</head>
+<body>
+  <h1>RPC Monitor</h1>
+  <div class="stat">Uptime: <span id="uptime">-</span></div>
+  <div class="stat">All RPCs on Cooldown Count: <span id="cooldown">-</span></div>
+
+  <div id="networks"></div>
+
+  <script>
+    function formatUptime(ms) {
+      const s = Math.floor(ms / 1000) % 60;
+      const m = Math.floor(ms / 60000) % 60;
+      const h = Math.floor(ms / 3600000);
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    function formatCooldown(readyAt) {
+      const now = Date.now();
+      if (readyAt <= now) return '-';
+      return Math.ceil((readyAt - now) / 1000) + 's';
+    }
+
+    function getStatusClass(rpc) {
+      if (rpc.paused) return 'paused';
+      if (rpc.inFlight) return 'in-flight';
+      return rpc.ready ? 'ready' : 'not-ready';
+    }
+
+    function getStatusText(rpc) {
+      if (rpc.paused) return 'Paused';
+      if (rpc.inFlight) return 'In Flight';
+      return rpc.ready ? 'Ready' : 'Cooldown';
+    }
+
+    async function toggleRpc(url) {
+      await fetch('/rpc/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      refresh();
+    }
+
+    async function refresh() {
+      const res = await fetch('/status');
+      const data = await res.json();
+
+      document.getElementById('uptime').textContent = formatUptime(data.elapsedMs);
+      document.getElementById('cooldown').textContent = data.allRpcsOnCooldownCount;
+
+      const container = document.getElementById('networks');
+      container.innerHTML = '';
+
+      for (const [network, types] of Object.entries(data.status)) {
+        for (const [type, rpcs] of Object.entries(types)) {
+          if (rpcs.length === 0) continue;
+
+          const section = document.createElement('div');
+          section.innerHTML = `<h2>${network} - ${type}</h2>`;
+
+          let tableHtml = `<table>
+            <thead>
+              <tr>
+                <th class="col-url">RPC URL</th>
+                <th class="col-status">Status</th>
+                <th class="col-cooldown">Cooldown</th>
+                <th class="col-num">Calls</th>
+                <th class="col-num">Success</th>
+                <th class="col-num">Failures</th>
+                <th class="col-num">Streak</th>
+                <th class="col-action">Action</th>
+              </tr>
+            </thead><tbody>`;
+
+          for (const rpc of rpcs) {
+            const stats = data.rpcStats[rpc.url] || { calls: 0, successes: 0, failures: 0, consecutiveFailures: 0 };
+            const btnClass = rpc.paused ? 'btn-resume' : 'btn-pause';
+            const btnText = rpc.paused ? 'Resume' : 'Pause';
+            tableHtml += `<tr>
+              <td title="${rpc.url}">${rpc.url}</td>
+              <td class="${getStatusClass(rpc)}">${getStatusText(rpc)}</td>
+              <td>${formatCooldown(rpc.readyAt)}</td>
+              <td>${stats.calls}</td>
+              <td>${stats.successes}</td>
+              <td>${stats.failures}</td>
+              <td>${stats.consecutiveFailures}</td>
+              <td class="col-action"><button class="btn ${btnClass}" onclick="toggleRpc('${rpc.url}')">${btnText}</button></td>
+            </tr>`;
+          }
+
+          tableHtml += '</tbody></table>';
+          section.innerHTML += tableHtml;
+          container.appendChild(section);
+        }
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 1000);
+  </script>
+</body>
+</html>
