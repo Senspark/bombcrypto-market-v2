@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React from "react";
 import styled from "styled-components";
 import { levelToPower } from "../../../utils/helper";
 import { IconSkill } from "../../common/style";
-import { getShieldData } from "../../Service/api";
 import { BHero } from "../../../types";
 
 const Box = styled.div`
@@ -83,43 +82,12 @@ const Title = styled.h4`
 
 interface StatsProps {
   data: BHero;
-  network: string;
 }
 
-export const Stats: React.FC<StatsProps> = ({ data, network }) => {
+export const Stats: React.FC<StatsProps> = ({ data }) => {
   const addPower = levelToPower[data.level] || 0;
-  const [staked, setStaked] = useState<number>(0);
-  const [stakedSen, setStakedSen] = useState<number>(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const unmountRef = useRef<boolean>(false);
-
-  console.log(data);
-
-  useEffect(() => {
-    unmountRef.current = false;
-    fetchdata();
-    return () => {
-      unmountRef.current = true;
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
-  const fetchdata = async () => {
-    if (unmountRef.current) {
-      return;
-    }
-    const resp = await getShieldData(data?.token_id, network);
-    setStaked(Math.floor(resp?.currentStakeBcoin || 0));
-    setStakedSen(Math.floor(resp?.currentStakeSen || 0));
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      fetchdata();
-    }, 60000);
-  };
+  const staked = Math.floor(data?.shieldData?.currentStakeBcoin || 0);
+  const stakedSen = Math.floor(data?.shieldData?.currentStakeSen || 0);
 
   return (
     <Box>
@@ -170,11 +138,11 @@ export const Stats: React.FC<StatsProps> = ({ data, network }) => {
           <div>
             <div className="skill">
               <IconCoinStake src="/icons/token.png" />
-              <span>{staked ? staked : 0}</span>
+              <span>{data.shieldData ? staked : "?"}</span>
             </div>
             <div className="skill">
               <IconCoinStake src="/icons/sen_token.png" />
-              <span>{stakedSen ? stakedSen : 0}</span>
+              <span>{data.shieldData ? stakedSen : "?"}</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { Tag, IconItem, IconSkill, IconCoinStake } from "../common/style";
 import SellModal from "../modal/sell";
@@ -26,15 +26,8 @@ import {
 } from "../../utils/config";
 import { useAccount } from "../../context/account";
 import { HeroIcon } from "../hero";
-import { getShieldData } from "../Service/api";
 import _ from "lodash";
-
-interface ShieldData {
-  heroType?: string;
-  shieldAmount?: string | number;
-  currentStakeBcoin?: number;
-  currentStakeSen?: number;
-}
+import { ShieldOutput } from "../../types/hero";
 
 interface HeroData {
   id?: string | number;
@@ -56,6 +49,7 @@ interface HeroData {
   nft_block_number?: number;
   block_timestamp?: string;
   seller_wallet_address?: string;
+  shieldData?: ShieldOutput | null;
 }
 
 interface InventoryBheroProps {
@@ -77,28 +71,16 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
   const { isShowing, toggle } = useModal();
   const [status, setStatus] = useState("sell");
   const [message, setMessage] = useState("");
-  const { clear, network } = useAccount();
+  const { clear } = useAccount();
   const { cancelOrder, setLoading, getOrder, block } = useContract();
   const abilities = data.abilities || [];
   const { isSellable, minPrice } = Bhero[data.rarity];
 
   const isThroughThe7DayRule =
     block !== null && (data.nft_block_number || 0) < block - cooldownByBlockNumber;
-  const [shieldData, setShieldData] = useState<ShieldData | null>(null);
-  const [staked, setStaked] = useState(0);
-  const [stakedSen, setStakedSen] = useState(0);
-
-  useEffect(() => {
-    fetchData();
-  }, [data]);
-
-  const fetchData = async () => {
-    const id = cancel ? data?.token_id : data?.id;
-    const resp = await getShieldData(id, network);
-    setShieldData(resp);
-    setStaked(Math.floor(resp?.currentStakeBcoin || 0));
-    setStakedSen(Math.floor(resp?.currentStakeSen || 0));
-  };
+  const shieldData = data.shieldData ?? null;
+  const staked = Math.floor(shieldData?.currentStakeBcoin || 0);
+  const stakedSen = Math.floor(shieldData?.currentStakeSen || 0);
 
   const sell = async () => {
     if (isSellable && isThroughThe7DayRule) {
@@ -220,7 +202,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
                 <span>
                   {shieldData?.shieldAmount
                     ? shieldData?.shieldAmount
-                    : `--/${mapRarityShield(data.rarity)}`}
+                    : `?/${mapRarityShield(data.rarity)}`}
                 </span>
               </div>
             </div>
@@ -231,13 +213,13 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
           <div className="flex-skill">
             <div className="skill">
               <IconCoinStake src="/icons/token.png" />
-              <span>{staked ? staked : 0}</span>
+              <span>{shieldData ? staked : "?"}</span>
             </div>
           </div>
           <div className="flex-skill">
             <div className="skill">
               <IconCoinStake src="/icons/sen_token.png" />
-              <span>{stakedSen ? stakedSen : 0}</span>
+              <span>{shieldData ? stakedSen : "?"}</span>
             </div>
           </div>
         </div>

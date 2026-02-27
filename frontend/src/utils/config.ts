@@ -181,12 +181,6 @@ export const NETWORK = {
   POLYGON: "Polygon",
 } as const;
 
-export const api = {
-  shield: {
-    domain: isProduction ? "https://api.bombcrypto.io/shield/heroes" : "https://api-test.bombcrypto.io/shield/heroes"
-  }
-};
-
 export const HeroType = {
   l: "L",
   lStake: "L+",

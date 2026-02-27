@@ -3,6 +3,7 @@ import {initLogger, getLogger} from '@/utils/logger';
 import {createPostgresPool} from '@/infrastructure/database/postgres';
 import {createRedisClient} from '@/infrastructure/redis/client';
 import {createBlockChainCenterApi, BlockChainCenterApi} from '@/infrastructure/blockchain/blockchain-center-api';
+import {ShieldApi} from '@/infrastructure/shield/shield-api';
 import {Subscriber} from '@/core/subscriber';
 
 const SUBSCRIBER_CONFIGS: SubscriberConfig[] = [
@@ -72,6 +73,9 @@ async function main(): Promise<void> {
         }),
     };
 
+    // Create ShieldApi instance
+    const shieldApi = new ShieldApi(config.shieldApiUrl, logger);
+
     // Create subscribers
     const subscribers: Subscriber[] = [];
 
@@ -79,13 +83,15 @@ async function main(): Promise<void> {
         logger.info(`Initializing subscriber: ${subConfig.idInConfig}`);
 
         const api = apiClients[subConfig.network];
+        const isHero = subConfig.dbTable === 'hero_orders';
 
         const subscriber = new Subscriber(
             subConfig,
             api,
             redis,
             db,
-            logger
+            logger,
+            isHero ? shieldApi : undefined
         );
 
         subscribers.push(subscriber);
@@ -130,6 +136,11 @@ async function main(): Promise<void> {
 
         for (const sub of subscribers) {
             const count = await sub.processBatch(20);
+            totalProcessed += count;
+        }
+
+        for (const sub of subscribers) {
+            const count = await sub.processShieldFetchQueue();
             totalProcessed += count;
         }
 

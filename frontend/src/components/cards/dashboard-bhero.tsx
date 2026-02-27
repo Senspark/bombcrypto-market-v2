@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { Tag, IconItem, IconSkill, IconCoinStake } from "../common/style";
 import {
@@ -10,19 +10,11 @@ import {
   mapRarityShield,
 } from "../../utils/helper";
 import Button from "../buttons/buy";
-import { useAccount } from "../../context/account";
 import { HeroIcon } from "../hero";
 import { IMAGE_TOKEN_SHOW, HeroType } from "../../utils/config";
 import { Tooltip } from "antd";
-import { getShieldData } from "../Service/api";
 import _ from "lodash";
-
-interface ShieldData {
-  heroType?: string;
-  shieldAmount?: string | number;
-  currentStakeBcoin?: number;
-  currentStakeSen?: number;
-}
+import { ShieldOutput } from "../../types/hero";
 
 interface HeroData {
   token_id: string | number;
@@ -40,6 +32,7 @@ interface HeroData {
   skin: number;
   color: number;
   seller_wallet_address?: string;
+  shieldData?: ShieldOutput | null;
 }
 
 interface DashboardBheroProps {
@@ -51,22 +44,10 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
     !_.isEmpty(data?.abilities_hero_s) &&
     !_.includes(data?.abilities_hero_s, 0);
   const abilities = data.abilities || [];
-  const { clear, network } = useAccount();
   const addPower = levelToPower[data.level];
-  const [shieldData, setShieldData] = useState<ShieldData | null>(null);
-  const [staked, setStaked] = useState(0);
-  const [stakedSen, setStakedSen] = useState(0);
-
-  useEffect(() => {
-    fetchData();
-  }, [data]);
-
-  const fetchData = async () => {
-    const resp = await getShieldData(data.token_id, network);
-    setShieldData(resp);
-    setStaked(Math.floor(resp?.currentStakeBcoin || 0));
-    setStakedSen(Math.floor(resp?.currentStakeSen || 0));
-  };
+  const shieldData = data.shieldData ?? null;
+  const staked = Math.floor(shieldData?.currentStakeBcoin || 0);
+  const stakedSen = Math.floor(shieldData?.currentStakeSen || 0);
 
   return (
     <Item>
@@ -94,7 +75,7 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
               title={
                 shieldData?.shieldAmount
                   ? shieldData?.shieldAmount
-                  : `--/${mapRarityShield(data.rarity)}`
+                  : `?/${mapRarityShield(data.rarity)}`
               }
               placement="top"
               overlayInnerStyle={{
@@ -139,13 +120,13 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
           <div className="flex-skill">
             <div className="skill">
               <IconCoinStake src="/icons/token.png" />
-              <span>{staked ? staked : 0}</span>
+              <span>{shieldData ? staked : "?"}</span>
             </div>
           </div>
           <div className="flex-skill">
             <div className="skill">
               <IconCoinStake src="/icons/sen_token.png" />
-              <span>{stakedSen ? stakedSen : 0}</span>
+              <span>{shieldData ? stakedSen : "?"}</span>
             </div>
           </div>
         </div>
@@ -163,7 +144,7 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
           data={data}
           price={data.amount}
           id={data.token_id}
-          fetchData={fetchData}
+          fetchData={() => {}}
         />
       </div>
     </Item>

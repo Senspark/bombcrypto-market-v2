@@ -1,5 +1,6 @@
 import Redis, {RedisOptions} from 'ioredis';
 import {Logger} from '@/utils/logger';
+import {heroSearchIdsKey, houseSearchIdsKey} from './redis-keys';
 
 // Redis client interface
 export interface IRedisClient {
@@ -17,6 +18,9 @@ export interface IRedisClient {
 
     // Get set cardinality (SCARD)
     getSetSize(key: string): Promise<number>;
+
+    // Hash operations
+    hmget(key: string, ...fields: string[]): Promise<(string | null)[]>;
 
     // Generic get/set for caching
     get(key: string): Promise<string | null>;
@@ -88,6 +92,11 @@ export class RedisClient implements IRedisClient {
 
     async getSetSize(key: string): Promise<number> {
         return this.client.scard(key);
+    }
+
+    async hmget(key: string, ...fields: string[]): Promise<(string | null)[]> {
+        if (fields.length === 0) return [];
+        return this.client.hmget(key, ...fields);
     }
 
     async get(key: string): Promise<string | null> {
@@ -163,8 +172,8 @@ export class SearchIdTracker {
         private readonly redis: IRedisClient | null,
         network: string
     ) {
-        this.heroKey = `MKP_HERO_SEARCH_IDS_${network.toUpperCase()}`;
-        this.houseKey = `MKP_HOUSE_SEARCH_IDS_${network.toUpperCase()}`;
+        this.heroKey = heroSearchIdsKey(network);
+        this.houseKey = houseSearchIdsKey(network);
     }
 
     // Track hero search IDs (async, non-blocking)

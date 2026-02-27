@@ -31,6 +31,7 @@ export const appConfigSchema = z.object({
     postgres: postgresConfigSchema,
     redis: redisConfigSchema,
     blockchainCenter: blockchainCenterConfigSchema,
+    shieldApiUrl: z.string().url(),
 });
 
 export type BlockchainCenterConfig = z.infer<typeof blockchainCenterConfigSchema>;

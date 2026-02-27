@@ -46,3 +46,4 @@ smc/.deps/
 # Temporary files
 tmp/
 temp/
+deploy*.sh

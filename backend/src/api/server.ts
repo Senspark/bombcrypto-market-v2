@@ -160,6 +160,8 @@ export class ApiServer {
             createUserRoutes({
                 walletHistoryRepo,
                 cache: cacheSet.getCache,
+                redis: this.deps.redis,
+                network: config.server.network,
                 logger,
             })
         );
@@ -172,6 +174,8 @@ export class ApiServer {
                 searchIdTracker: this.searchIdTracker,
                 blockchainApi: this.blockchainApi,
                 contractAddress: config.server.bheroContractAddress,
+                redis: this.deps.redis,
+                network: config.server.network,
                 logger,
             })
         );

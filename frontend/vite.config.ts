@@ -5,7 +5,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3004,
+    port: 3001,
     open: true,
     proxy: {
       '/api/bsc': {
@@ -21,12 +21,12 @@ export default defineConfig({
       '/local-api': {
         target: 'http://localhost:3003',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/local-api/, ''),
+        rewrite: (path) => path.replace(/^\/local-api/, '/api/polygon'),
       },
       '/proxy-polygon': {
-        target: 'https://market-api-polygon.bombcrypto.io',
+        target: 'https://market.bombcrypto.io',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/proxy-polygon/, ''),
+        rewrite: (path) => path.replace(/^\/proxy-polygon/, '/api/bsc'),
         secure: true,
       },
       '/proxy-bnb': {
