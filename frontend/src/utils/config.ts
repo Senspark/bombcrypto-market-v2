@@ -105,8 +105,8 @@ const useLocalApi = import.meta.env.VITE_USE_LOCAL === 'true';
 const useNewBackend = import.meta.env.VITE_USE_NEW_BACKEND === 'true';
 
 export const rest_api: Record<string, string> = {
-  BNB: useNewBackend ? '/api/bsc/' : (useLocalApi ? '/local-api/api/v1/' : (useLocalProxy ? '/proxy-bnb/api/v1/' : (isProduction ? address_bnb_prod.api : address_bnb_test.api))),
-  Polygon: useNewBackend ? '/api/polygon/' : (useLocalApi ? '/local-api/api/v1/' : (useLocalProxy ? '/proxy-polygon/api/v1/' : (isProduction ? address_polygon_prod.api : address_polygon_test.api))),
+  BNB: useNewBackend ? '/api/bsc/' : (useLocalApi ? '/local-api/api/bsc/' : (useLocalProxy ? '/proxy-bnb/' : (isProduction ? address_bnb_prod.api : address_bnb_test.api))),
+  Polygon: useNewBackend ? '/api/polygon/' : (useLocalApi ? '/local-api/api/polygon/' : (useLocalProxy ? '/proxy-polygon/' : (isProduction ? address_polygon_prod.api : address_polygon_test.api))),
 };
 
 export const RPC_BSC: Record<string, string> = {

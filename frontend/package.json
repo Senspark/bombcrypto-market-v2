@@ -43,7 +43,7 @@
     "start:test": "VITE_IS_PROD=false vite",
     "start:prod": "VITE_IS_PROD=true vite",
     "start:prod:local": "VITE_IS_PROD=true VITE_USE_LOCAL=true vite",
-    "start:new-backend": "VITE_USE_NEW_BACKEND=true VITE_IS_PROD=true vite",
+    "start:new-backend": "VITE_USE_NEW_BACKEND=true VITE_USE_LOCAL=true VITE_IS_PROD=true vite",
     "build": "tsc && vite build",
     "build-prod": "tsc && VITE_IS_PROD=true vite build",
     "build:new-backend": "tsc && VITE_USE_NEW_BACKEND=true VITE_IS_PROD=true vite build --mode production",
