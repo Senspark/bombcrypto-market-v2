@@ -1628,7 +1628,7 @@
       "chain": "Polygon",
       "network": "mainnet",
       "rpc": [
-        "https://polygon-rpc.com/",
+        "https://polygon.drpc.org/",
         "https://rpc-mainnet.matic.network",
         "https://matic-mainnet.chainstacklabs.com",
         "https://rpc-mainnet.maticvigil.com",
