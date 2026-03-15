@@ -81,7 +81,7 @@ const ContentRouter: React.FC = () => {
           <MarketAnalyticsDashboard />
         </AnimationLoad>
       </Route>
-      <Route exact path="/pulse">
+      <Route path="/pulse">
         <AnimationLoad>
           <PulseDashboard />
         </AnimationLoad>
