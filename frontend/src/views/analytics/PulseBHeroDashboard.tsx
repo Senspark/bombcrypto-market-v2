@@ -22,12 +22,12 @@ const SalesChart: React.FC<{ data: { time: UTCTimestamp; value: number }[] }> = 
     if (chartContainerRef.current) {
       const chart = createChart(chartContainerRef.current, {
         layout: {
-          background: { type: ColorType.Solid, color: '#111' },
+          background: { type: ColorType.Solid, color: 'transparent' },
           textColor: '#d1d4dc',
         },
         grid: {
-          vertLines: { color: '#333' },
-          horzLines: { color: '#333' },
+          vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+          horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
         },
         width: chartContainerRef.current.clientWidth,
         height: 300,
@@ -36,7 +36,7 @@ const SalesChart: React.FC<{ data: { time: UTCTimestamp; value: number }[] }> = 
       const lineSeries = chart.addSeries(
           LineSeries,
           {
-            color: '#00ff41',
+            color: '#ff973a',
             lineWidth: 2,
           }
       );
@@ -320,18 +320,22 @@ const PulseBHeroDashboard: React.FC = () => {
           <Scorecard>
             <ScoreLabel>GMV (Volume)</ScoreLabel>
             <ScoreValue>{kpis?.gmv || "0"} BCOIN</ScoreValue>
+            <Trend isPositive={true}>▲ +5.2% vs last 24h</Trend>
           </Scorecard>
           <Scorecard>
             <ScoreLabel>Avg Sale Price</ScoreLabel>
             <ScoreValue>{kpis?.avgSalePrice || "0"} BCOIN</ScoreValue>
+            <Trend isPositive={false}>▼ -1.1% vs last 24h</Trend>
           </Scorecard>
           <Scorecard>
             <ScoreLabel>Floor Price (Sold)</ScoreLabel>
             <ScoreValue>{kpis?.floorPrice || "0"} BCOIN</ScoreValue>
+            <Trend isPositive={true}>▲ +0.5% vs last 24h</Trend>
           </Scorecard>
           <Scorecard>
             <ScoreLabel>Avg Stat Score</ScoreLabel>
             <ScoreValue>{kpis?.avgStatScore || "0"}</ScoreValue>
+            <Trend isPositive={true}>▲ +2.0% vs last 24h</Trend>
           </Scorecard>
         </ScorecardGrid>
 
@@ -366,7 +370,7 @@ const PulseBHeroDashboard: React.FC = () => {
                   <td>Tier {hero.rarity}</td>
                   <td>{hero.priceEth.toFixed(4)}</td>
                   <td>{hero.statScore}</td>
-                  <td style={{color: '#00ff41'}}>{hero.priceEfficiency.toFixed(2)}</td>
+                  <td style={{color: '#ff973a'}}>{hero.priceEfficiency.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -383,6 +387,10 @@ const ContentTab = styled.div`
   display: flex;
   color: white;
 
+  @media (max-width: 992px) {
+    flex-direction: column;
+  }
+
   .left {
     flex: 0 0 23rem;
     width: 23rem;
@@ -392,7 +400,16 @@ const ContentTab = styled.div`
     position: sticky;
     top: 0;
     overflow-y: auto;
-    background: #050505;
+    background: transparent;
+
+    @media (max-width: 992px) {
+      flex: 1;
+      width: 100%;
+      height: auto;
+      border-right: none;
+      position: relative;
+      border-bottom: 1px solid #3f445b;
+    }
 
     .title {
       color: #7680ab;
@@ -412,14 +429,14 @@ const ContentTab = styled.div`
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    background: #050505;
+    background: transparent;
   }
 `;
 
 const FilterBtn = styled.button<{active: boolean}>`
-  background: ${props => props.active ? '#00ff41' : 'transparent'};
+  background: ${props => props.active ? '#ff973a' : '#3a3f54'};
   color: ${props => props.active ? '#000' : '#888'};
-  border: 1px solid ${props => props.active ? '#00ff41' : '#333'};
+  border: 1px solid ${props => props.active ? '#ff973a' : 'transparent'};
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
   font-family: monospace;
@@ -430,21 +447,23 @@ const FilterBtn = styled.button<{active: boolean}>`
 
   &:hover {
     color: ${props => props.active ? '#000' : '#fff'};
-    background: ${props => props.active ? '#00ff41' : '#222'};
+    background: ${props => props.active ? '#ff973a' : '#131e4b'};
   }
 `;
 
 const FilterInput = styled.input`
-  background: #222;
-  border: 1px solid #444;
+  background: #3a3f54;
+  border: 1px solid transparent;
   color: #fff;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   width: 60px;
   font-family: monospace;
   outline: none;
+  transition: background 0.3s ease-in-out;
   &:focus {
-    border-color: #00ff41;
+    background: #131e4b;
+    border-color: #ff973a;
   }
 `;
 
@@ -460,21 +479,40 @@ const ScorecardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Scorecard = styled.div`
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 8px;
+  background: rgba(58, 63, 84, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  position: relative;
+`;
+
+const Trend = styled.div<{ isPositive: boolean }>`
+  position: absolute;
+  bottom: 1rem;
+  right: 1.5rem;
+  font-size: 0.8rem;
+  font-family: monospace;
+  color: ${props => props.isPositive ? '#00ff41' : '#ff3333'};
 `;
 
 const ScoreLabel = styled.div`
-  color: #888;
+  color: #7680ab;
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
@@ -482,17 +520,19 @@ const ScoreLabel = styled.div`
 `;
 
 const ScoreValue = styled.div`
-  color: #00ff41;
+  color: #ff973a;
   font-size: 2.5rem;
   font-weight: bold;
   font-family: "agency-fb-regular", sans-serif;
 `;
 
 const ChartSection = styled.div`
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 8px;
+  background: rgba(58, 63, 84, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   padding: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 `;
 
 const SectionTitle = styled.h2`
@@ -534,13 +574,13 @@ const LoadingWrapper = styled.div`
   justify-content: center;
   height: 60vh;
   width: 100%;
-  background: #050505;
+  background: transparent;
 `;
 
 const LoadingText = styled.div`
   margin-top: 1rem;
   font-size: 1.5rem;
-  color: #00ff41;
+  color: #ff973a;
   font-family: monospace;
 `;
 
