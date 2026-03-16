@@ -125,7 +125,7 @@ const PulseBHouseDashboard: React.FC = () => {
       }
 
       // 2. Rarity Filter
-      if (selectedRarities.length > 0 && !selectedRarities.includes(Number(item.rarity))) {
+      if (selectedRarities.length > 0 && item.rarity !== undefined && !selectedRarities.includes(Number(item.rarity))) {
         return false;
       }
 
@@ -143,6 +143,7 @@ const PulseBHouseDashboard: React.FC = () => {
           floorPrice: "0.0000",
           avgSalePrice: "0.0000",
           avgCapacity: "0",
+          totalTransactions: 0,
           enrichedHouses: [],
           chartData: []
        }
@@ -177,21 +178,21 @@ const PulseBHouseDashboard: React.FC = () => {
     filteredData.forEach(house => {
         if (!house.updated_at) return;
         const dateStr = house.updated_at.split('T')[0];
-        const ts = new Date(dateStr).getTime() / 1000;
 
-        if(!dailyVolumeMap[ts]) dailyVolumeMap[ts] = 0;
-        dailyVolumeMap[ts] += parseFloat(house.amount) / 1e18;
+        if(!dailyVolumeMap[dateStr]) dailyVolumeMap[dateStr] = 0;
+        dailyVolumeMap[dateStr] += parseFloat(house.amount) / 1e18;
     });
 
     const chartData = Object.keys(dailyVolumeMap)
-        .map(ts => ({ time: parseInt(ts) as UTCTimestamp, value: dailyVolumeMap[ts] }))
-        .sort((a, b) => (a.time as number) - (b.time as number));
+        .map(dateStr => ({ time: dateStr as unknown as UTCTimestamp, value: dailyVolumeMap[dateStr] }))
+        .sort((a, b) => new Date(a.time as unknown as string).getTime() - new Date(b.time as unknown as string).getTime());
 
     return {
       gmv: totalGmv.toFixed(2),
       floorPrice: minFloorPrice === Infinity ? "0" : minFloorPrice.toFixed(4),
       avgSalePrice: avgPrice.toFixed(4),
       avgCapacity: avgCapacity.toFixed(1),
+      totalTransactions: filteredData.length,
       enrichedHouses,
       chartData
     };
@@ -199,10 +200,19 @@ const PulseBHouseDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <LoadingWrapper>
-        <Loading />
-        <LoadingText>Pulse: Mining BHouse Data...</LoadingText>
-      </LoadingWrapper>
+      <ContentTab>
+        <div className="left custom-form">
+           <LoadingWrapper>
+             <Loading />
+           </LoadingWrapper>
+        </div>
+        <div className="right">
+          <LoadingWrapper>
+            <Loading />
+            <LoadingText>Pulse: Mining BHouse Data...</LoadingText>
+          </LoadingWrapper>
+        </div>
+      </ContentTab>
     );
   }
 
@@ -242,6 +252,27 @@ const PulseBHouseDashboard: React.FC = () => {
       </div>
 
       <div className="right">
+        <SectionTitle>Macro Overview</SectionTitle>
+        <ScorecardGrid>
+          <Scorecard>
+            <ScoreLabel>Global Volume</ScoreLabel>
+            <ScoreValue>{kpis?.gmv || "0"} BCOIN</ScoreValue>
+          </Scorecard>
+          <Scorecard>
+            <ScoreLabel>Total Transactions</ScoreLabel>
+            <ScoreValue>{kpis?.totalTransactions || 0}</ScoreValue>
+          </Scorecard>
+          <Scorecard>
+            <ScoreLabel>Floor Price</ScoreLabel>
+            <ScoreValue>{kpis?.floorPrice || "0"} BCOIN</ScoreValue>
+          </Scorecard>
+          <Scorecard>
+            <ScoreLabel>Avg Sale Price</ScoreLabel>
+            <ScoreValue>{kpis?.avgSalePrice || "0"} BCOIN</ScoreValue>
+          </Scorecard>
+        </ScorecardGrid>
+
+        <SectionTitle style={{ marginTop: '2rem' }}>Strategic Efficiency</SectionTitle>
         <ScorecardGrid>
           <Scorecard>
             <ScoreLabel>GMV (Volume)</ScoreLabel>
