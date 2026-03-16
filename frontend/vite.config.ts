@@ -17,6 +17,12 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/pulse-api\/bsc/, ''),
         secure: true,
       },
+      '/pulse-api/polygon': {
+        target: 'https://market.bombcrypto.io/api/polygon',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/pulse-api\/polygon/, ''),
+        secure: true,
+      },
       '/api/bsc': {
         target: 'http://localhost:3003',
         changeOrigin: true,
