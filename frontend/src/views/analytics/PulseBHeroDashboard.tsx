@@ -103,8 +103,14 @@ const PulseBHeroDashboard: React.FC = () => {
       setLoading(true);
       try {
         // Use the centralized pulseApiClient specifically designed for open source development!
+        // We bypass the baseURL for polygon by giving an absolute or leading-slash path if we use local proxy,
+        // but for now, we will override the baseURL inline to fetch from polygon API correctly
+        const baseURL = network === 'Polygon'
+           ? (import.meta.env.VITE_API_BASE_URL ? '/pulse-api/polygon/' : 'https://market.bombcrypto.io/api/polygon/')
+           : (import.meta.env.VITE_API_BASE_URL ? '/pulse-api/bsc/' : 'https://market.bombcrypto.io/api/bsc/');
         const response = await pulseApiClient.get(
-          `/transactions/heroes/search?status=sold&size=100&order_by=desc:updated_at`
+          `transactions/heroes/search?status=sold&size=100&order_by=desc:updated_at`,
+          { baseURL }
         );
 
         if (!unmounted && response.data && response.data.transactions) {
@@ -138,8 +144,11 @@ const PulseBHeroDashboard: React.FC = () => {
     const filteredData = data.filter(item => {
       // 1. Time Filter
       if (timeRange !== 'all') {
-        if (!item.updated_at) return false;
-        const itemTime = new Date(item.updated_at).getTime();
+        const itemUpdatedAt = item.updated_at ?? (item as any).updatedAt;
+        if (!itemUpdatedAt) return false;
+        // Handle timestamps that might be in seconds instead of ms, or strings
+        const timeValue = typeof itemUpdatedAt === 'number' && itemUpdatedAt < 10000000000 ? itemUpdatedAt * 1000 : itemUpdatedAt;
+        const itemTime = new Date(timeValue).getTime();
         const diffHours = (now - itemTime) / (1000 * 60 * 60);
         if (timeRange === '24h' && diffHours > 24) return false;
         if (timeRange === '7d' && diffHours > 24 * 7) return false;
@@ -147,8 +156,9 @@ const PulseBHeroDashboard: React.FC = () => {
       }
 
       // 2. Rarity Filter
-      if (selectedRarities.length > 0 && item.rarity !== undefined && !selectedRarities.includes(Number(item.rarity))) {
-        return false;
+      if (selectedRarities.length > 0) {
+        if (item.rarity === undefined || item.rarity === null) return false;
+        if (!selectedRarities.includes(Number(item.rarity))) return false;
       }
 
       // 3. Price Filter (converted from Wei)
