@@ -8,6 +8,15 @@ export default defineConfig({
     port: 3004,
     open: true,
     proxy: {
+      // Open-Source Community: Pulse Dashboard Local Proxy
+      // Bypasses browser CORS restrictions by routing requests through Vite
+      // directly to the live production endpoint.
+      '/pulse-api/bsc': {
+        target: 'https://market.bombcrypto.io/api/bsc',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/pulse-api\/bsc/, ''),
+        secure: true,
+      },
       '/api/bsc': {
         target: 'http://localhost:3003',
         changeOrigin: true,

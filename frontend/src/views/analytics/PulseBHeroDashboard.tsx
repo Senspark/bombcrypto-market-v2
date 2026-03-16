@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
-import { getAPI } from '../../utils/helper';
+import pulseApiClient from '../../utils/pulseApiClient';
 import { useAccount } from '../../context/account';
 import { BHero } from '../../types/hero';
 import Loading from '../../components/layouts/loading';
@@ -103,8 +102,9 @@ const PulseBHeroDashboard: React.FC = () => {
     const fetchMarketData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `${getAPI(network)}transactions/heroes/search?status=sold&size=100&order_by=desc:updated_at`
+        // Use the centralized pulseApiClient specifically designed for open source development!
+        const response = await pulseApiClient.get(
+          `/transactions/heroes/search?status=sold&size=100&order_by=desc:updated_at`
         );
 
         if (!unmounted && response.data && response.data.transactions) {
@@ -138,6 +138,7 @@ const PulseBHeroDashboard: React.FC = () => {
     const filteredData = data.filter(item => {
       // 1. Time Filter
       if (timeRange !== 'all') {
+        if (!item.updated_at) return false;
         const itemTime = new Date(item.updated_at).getTime();
         const diffHours = (now - itemTime) / (1000 * 60 * 60);
         if (timeRange === '24h' && diffHours > 24) return false;
@@ -192,8 +193,16 @@ const PulseBHeroDashboard: React.FC = () => {
     }
 
     const enrichedHeroes = filteredData.map(hero => {
-      const statScore = hero.stamina + hero.speed + hero.bomb_power + hero.bomb_count + hero.bomb_range;
-      const priceEth = parseFloat(hero.amount) / 1e18;
+      // Map JSON keys which might be camelCase to snake_case if they're coming directly from API
+      const stamina = hero.stamina || 0;
+      const speed = hero.speed || 0;
+      const bombPower = hero.bomb_power ?? (hero as any).bombPower ?? 0;
+      const bombCount = hero.bomb_count ?? (hero as any).bombCount ?? 0;
+      const bombRange = hero.bomb_range ?? (hero as any).bombRange ?? 0;
+      const amount = hero.amount || '0';
+
+      const statScore = stamina + speed + bombPower + bombCount + bombRange;
+      const priceEth = parseFloat(amount) / 1e18;
 
       totalGmv += priceEth;
       if (priceEth < minFloorPrice) minFloorPrice = priceEth;
@@ -203,6 +212,8 @@ const PulseBHeroDashboard: React.FC = () => {
 
       return {
         ...hero,
+        token_id: hero.token_id ?? (hero as any).tokenId,
+        updated_at: hero.updated_at ?? (hero as any).updatedAt,
         statScore,
         priceEth,
         priceEfficiency
@@ -216,6 +227,7 @@ const PulseBHeroDashboard: React.FC = () => {
     const dailyVolumeMap: Record<string, number> = {};
     filteredData.forEach(hero => {
         // Group by day using updated_at
+        if (!hero.updated_at) return;
         const dateStr = hero.updated_at.split('T')[0];
         const ts = new Date(dateStr).getTime() / 1000;
 

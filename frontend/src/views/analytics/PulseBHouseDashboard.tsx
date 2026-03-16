@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
-import { getAPI } from '../../utils/helper';
+import pulseApiClient from '../../utils/pulseApiClient';
 import { useAccount } from '../../context/account';
 import { BHouse } from '../../types/house';
 import Loading from '../../components/layouts/loading';
@@ -81,8 +80,9 @@ const PulseBHouseDashboard: React.FC = () => {
     const fetchMarketData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `${getAPI(network)}transactions/houses/search?status=sold&size=100&order_by=desc:updated_at`
+        // Utilizing the open-source ready pulseApiClient for zero-setup data!
+        const response = await pulseApiClient.get(
+          `/transactions/houses/search?status=sold&size=100&order_by=desc:updated_at`
         );
 
         if (!unmounted && response.data && response.data.transactions) {
@@ -116,6 +116,7 @@ const PulseBHouseDashboard: React.FC = () => {
     const filteredData = data.filter(item => {
       // 1. Time Filter
       if (timeRange !== 'all') {
+        if (!item.updated_at) return false;
         const itemTime = new Date(item.updated_at).getTime();
         const diffHours = (now - itemTime) / (1000 * 60 * 60);
         if (timeRange === '24h' && diffHours > 24) return false;
@@ -148,16 +149,21 @@ const PulseBHouseDashboard: React.FC = () => {
     }
 
     const enrichedHouses = filteredData.map(house => {
-      const priceEth = parseFloat(house.amount) / 1e18;
+      const amount = house.amount || '0';
+      const capacity = house.capacity || 0;
+      const priceEth = parseFloat(amount) / 1e18;
 
       totalGmv += priceEth;
       if (priceEth < minFloorPrice) minFloorPrice = priceEth;
-      totalCapacity += house.capacity;
+      totalCapacity += capacity;
 
-      const priceEfficiency = priceEth > 0 ? house.capacity / priceEth : 0;
+      const priceEfficiency = priceEth > 0 ? capacity / priceEth : 0;
 
       return {
         ...house,
+        token_id: house.token_id ?? (house as any).tokenId,
+        updated_at: house.updated_at ?? (house as any).updatedAt,
+        capacity,
         priceEth,
         priceEfficiency
       };
@@ -169,6 +175,7 @@ const PulseBHouseDashboard: React.FC = () => {
     // Aggregate for Daily Volume Chart
     const dailyVolumeMap: Record<string, number> = {};
     filteredData.forEach(house => {
+        if (!house.updated_at) return;
         const dateStr = house.updated_at.split('T')[0];
         const ts = new Date(dateStr).getTime() / 1000;
 
