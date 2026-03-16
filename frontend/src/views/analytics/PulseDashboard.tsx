@@ -39,7 +39,7 @@ const PulseDashboard: React.FC = () => {
 const DashboardContainer = styled.div`
   width: 100%;
   min-height: calc(100vh - 80px);
-  background-color: #050505;
+  background: transparent;
 `;
 
 const TabTitle = styled.div`
