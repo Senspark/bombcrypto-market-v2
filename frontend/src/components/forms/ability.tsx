@@ -29,7 +29,7 @@ const CheckBox = styled.div`
 
   input:checked + label {
     .content img {
-      // filter: grayscale(0%);
+      filter: grayscale(0%);
     }
   }
 
