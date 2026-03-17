@@ -109,9 +109,16 @@ export const rest_api: Record<string, string> = {
   Polygon: useNewBackend ? '/api/polygon/' : (useLocalApi ? '/local-api/api/polygon/' : (useLocalProxy ? '/proxy-polygon/' : (isProduction ? address_polygon_prod.api : address_polygon_test.api))),
 };
 
-export const RPC_BSC: Record<string, string> = {
-  BNB: isProduction ? address_bnb_prod.rpc : address_bnb_test.rpc,
-  Polygon: isProduction ? address_polygon_prod.rpc : address_polygon_test.rpc,
+export const RPC_BSC: Record<string, string[]> = {
+  BNB: isProduction ? [address_bnb_prod.rpc] : [address_bnb_test.rpc],
+  Polygon: isProduction
+    ? [
+        address_polygon_prod.rpc,
+        "https://polygon.llamarpc.com",
+        "https://rpc.ankr.com/polygon",
+        "https://polygon-mainnet.public.blastapi.io"
+      ]
+    : [address_polygon_test.rpc, "https://rpc-amoy.polygon.technology/"],
 };
 
 export const cooldownByBlockNumber = 201600;
