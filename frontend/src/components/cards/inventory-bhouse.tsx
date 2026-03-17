@@ -34,6 +34,9 @@ interface InventoryBhouseProps {
   approve: () => void;
   data: HouseData;
   cancel?: string | number;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string | number) => void;
 }
 
 const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
@@ -41,6 +44,9 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
   approve,
   data,
   cancel,
+  selectable,
+  selected,
+  onSelect,
 }) => {
   const { isShowing, toggle } = useModal();
   const [status, setStatus] = useState("sell");
@@ -99,7 +105,12 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
   const info = mapHouseDetail[data.rarity];
 
   return (
-    <Item>
+    <Item $selectable={selectable} $selected={selected} onClick={() => selectable && onSelect && onSelect(data.token_id || data.id || 0)}>
+      {selectable && (
+        <CheckboxWrapper>
+          <input type="checkbox" checked={selected} readOnly />
+        </CheckboxWrapper>
+      )}
       <div className="icon-hero">
         <img
           src={"/house/" + mapHouse[data.rarity].replace(" ", "") + ".png"}
@@ -232,14 +243,32 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
   );
 };
 
-const Item = styled.div`
+const CheckboxWrapper = styled.div`
+  margin-right: 1.5rem;
+  display: flex;
+  align-items: center;
+  input {
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    accent-color: #ff973a;
+  }
+`;
+
+const Item = styled.div<{ $selectable?: boolean; $selected?: boolean }>`
   display: flex;
   width: 100%;
   align-items: center;
   padding: 1.125rem 1.313rem;
   justify-content: space-between;
-  border: solid 1px #343849;
-  background-color: #191b24;
+  border: solid 1px ${(props) => (props.$selected ? "#ff973a" : "#343849")};
+  background-color: ${(props) => (props.$selected ? "#3a2a1d" : "#191b24")};
+  cursor: ${(props) => (props.$selectable ? "pointer" : "default")};
+  transition: all 0.2s ease-in-out;
+  ${(props) =>
+    props.$selectable &&
+    `&:hover { border-color: #ff973a; }`}
+
   .info {
     min-width: 10rem;
   }

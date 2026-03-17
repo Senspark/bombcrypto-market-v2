@@ -28,6 +28,7 @@ interface HeroData {
 
 interface InventoryParams {
   filter: string;
+  rarity?: string;
   page: number;
   size: number;
 }
@@ -40,6 +41,9 @@ interface InventoryProps {
   params: InventoryParams;
   onChange: (name: string, value: number) => void;
   setLoading: (loading: boolean) => void;
+  selectable?: boolean;
+  selectedIds?: (string | number)[];
+  onSelect?: (id: string | number) => void;
 }
 
 const Inventory: React.FC<InventoryProps> = React.memo(
@@ -51,6 +55,9 @@ const Inventory: React.FC<InventoryProps> = React.memo(
     params,
     onChange,
     setLoading,
+    selectable,
+    selectedIds,
+    onSelect,
   }) => {
     const [isApprove, setApprove] = useState(false);
 
@@ -112,6 +119,11 @@ const Inventory: React.FC<InventoryProps> = React.memo(
       ];
     }
 
+    if (params.rarity && params.rarity !== "all") {
+      const targetRarity = parseInt(params.rarity);
+      list = list.filter((item) => item.rarity === targetRarity);
+    }
+
     const dataShow = [...list].slice(
       (params.page - 1) * params.size,
       params.page * params.size
@@ -123,15 +135,21 @@ const Inventory: React.FC<InventoryProps> = React.memo(
       <Wrap>
         <div className="right-title">{list.length} Bheroes</div>
         <List>
-          {dataShow.map((element, index) => (
-            <Bhero
-              key={`${element.id || element.token_id || index}`}
-              isApprove={isApprove}
-              approve={approve}
-              data={element}
-              cancel={element.token_id}
-            />
-          ))}
+          {dataShow.map((element, index) => {
+            const id = element.token_id || element.id || 0;
+            return (
+              <Bhero
+                key={`${id}-${index}`}
+                isApprove={isApprove}
+                approve={approve}
+                data={element}
+                cancel={element.token_id}
+                selectable={selectable && !element.token_id}
+                selected={selectedIds?.includes(id)}
+                onSelect={onSelect}
+              />
+            );
+          })}
         </List>
         <WrapPagination>
           <Pagination
@@ -166,6 +184,9 @@ interface WrapInvestorProps {
   own?: HeroData[];
   params: InventoryParams;
   onChange: (name: string, value: number) => void;
+  selectable?: boolean;
+  selectedIds?: (string | number)[];
+  onSelect?: (id: string | number) => void;
 }
 
 const WrapInvestor: React.FC<WrapInvestorProps> = (props) => {
