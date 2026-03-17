@@ -63,14 +63,25 @@ const Account: React.FC = () => {
     page: 1,
     size: 10,
     filter: "all",
+    rarity: "all",
   });
   const { path } = useRouteMatch();
   const onChange = (name: string, value: unknown) => {
     const temp = { ...params };
-    if (name === "filter") params.page = 1;
+    if (name === "filter" || name === "rarity") params.page = 1;
     temp[name] = value;
     setParams(temp);
   };
+
+  const rarityOptions: SortOption[] = [
+    { label: "All Rarities", value: "all" },
+    { label: "Common", value: "0" },
+    { label: "Rare", value: "1" },
+    { label: "Super Rare", value: "2" },
+    { label: "Epic", value: "3" },
+    { label: "Legend", value: "4" },
+    { label: "Super Legend", value: "5" },
+  ];
   const location = useLocation();
   return (
     <AccountStyled>
@@ -83,6 +94,8 @@ const Account: React.FC = () => {
         ))}
         <div className="select">
           <Select options={sortby} name="filter" onChange={onChange} />
+          <div style={{ width: "1rem", display: "inline-block" }}></div>
+          <Select options={rarityOptions} name="rarity" onChange={onChange} />
         </div>
       </div>
       <Switch location={location} key={location.pathname}>

@@ -28,6 +28,7 @@ interface HeroData {
 
 interface InventoryParams {
   filter: string;
+  rarity?: string;
   page: number;
   size: number;
 }
@@ -116,6 +117,11 @@ const Inventory: React.FC<InventoryProps> = React.memo(
         ...own.filter((item) => !_.isEmpty(item.abilities_hero_s)),
         ...data_not_sell.filter((item) => !_.isEmpty(item.abilities_hero_s)),
       ];
+    }
+
+    if (params.rarity && params.rarity !== "all") {
+      const targetRarity = parseInt(params.rarity);
+      list = list.filter((item) => item.rarity === targetRarity);
     }
 
     const dataShow = [...list].slice(
