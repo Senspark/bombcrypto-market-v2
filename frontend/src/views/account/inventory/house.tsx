@@ -8,6 +8,7 @@ import useGetTokenPayList from "../../../hooks/useGetTokenPayList";
 import { getAPI } from "../../../utils/helper";
 import BatchTransferModal from "../../../components/modal/batch-transfer";
 import { useModal } from "../../../components/modal";
+import { message } from "antd";
 
 interface InventoryState {
   heroes: unknown[];
@@ -64,10 +65,54 @@ const Inventory: React.FC<InventoryProps> = (props) => {
         return prev.filter((item) => item !== id);
       }
       if (prev.length >= 50) {
+        message.error("You can only select up to 50 items for batch transfer.");
         return prev;
       }
       return [...prev, id];
     });
+  };
+
+  const handleSelectAll = () => {
+    const paramsF = props.params as any;
+
+    // Filter logic mirroring inventory-bhouse.tsx
+    let list: any[] = [];
+    const data_not_sell = (list as any).houses?.filter((element: any) => {
+      const item = own.houses?.find((e: any) => e.token_id === element.id);
+      return !item;
+    }) || [];
+
+    const ownHouses = own.houses || [];
+
+    if (paramsF?.filter === "all") list = [...ownHouses, ...data_not_sell];
+    if (paramsF?.filter === "selling") list = [...ownHouses];
+    if (paramsF?.filter === "no-selling") list = [...data_not_sell];
+    if (paramsF?.filter === "rarity") {
+      list = [
+        ...ownHouses.sort((a: any, b: any) => (a.rarity > b.rarity ? -1 : 1)),
+        ...data_not_sell.sort((a: any, b: any) => (a.rarity > b.rarity ? -1 : 1)),
+      ];
+    }
+
+    if (list.length === 0 && ownHouses.length > 0) {
+      list = [...ownHouses];
+    }
+
+    if (paramsF?.rarity && paramsF.rarity !== "all") {
+      const targetRarity = parseInt(paramsF.rarity);
+      list = list.filter((item: any) => item.rarity === targetRarity);
+    }
+
+    // Extract valid IDs (not selling)
+    const validItems = list.filter((item: any) => !item.token_id);
+    const validIds = validItems.map((item: any) => item.id || item.token_id || 0);
+
+    const idsToAdd = validIds.slice(0, 50);
+    setSelectedIds(idsToAdd);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedIds([]);
   };
 
   const executeBatchTransfer = async (toAddress: string) => {
@@ -86,8 +131,14 @@ const Inventory: React.FC<InventoryProps> = (props) => {
     <Recently>
       <div className="right">
         <Toolbar>
+          {isBatchMode && (
+            <div className="batch-actions">
+              <button onClick={handleSelectAll}>Select All</button>
+              <button onClick={handleDeselectAll}>Deselect All</button>
+            </div>
+          )}
           <button
-            className={isBatchMode ? "active" : ""}
+            className={`batch-toggle ${isBatchMode ? "active" : ""}`}
             onClick={() => {
               setIsBatchMode(!isBatchMode);
               if (isBatchMode) {
@@ -140,7 +191,15 @@ const Inventory: React.FC<InventoryProps> = (props) => {
 const Toolbar = styled.div`
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   padding: 1rem 2.188rem 0;
+
+  .batch-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-right: 1rem;
+  }
+
   button {
     padding: 0.5rem 1rem;
     background: #191b24;

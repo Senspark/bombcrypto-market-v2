@@ -17,6 +17,7 @@ interface HouseData {
 
 interface InventoryParams {
   filter: string;
+  rarity?: string;
   page: number;
   size: number;
 }
@@ -106,6 +107,11 @@ const Inventory: React.FC<InventoryProps> = React.memo(
         ...own.sort((a, b) => (a.rarity > b.rarity ? -1 : 1)),
         ...data_not_sell.sort((a, b) => (a.rarity > b.rarity ? -1 : 1)),
       ];
+    }
+
+    if (params.rarity && params.rarity !== "all") {
+      const targetRarity = parseInt(params.rarity);
+      list = list.filter((item) => item.rarity === targetRarity);
     }
 
     const dataShow = [...list].slice(
