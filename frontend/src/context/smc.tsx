@@ -8,6 +8,7 @@ import {
   getBalance,
   onListenNetworkChange,
   TokenName,
+  getProvider,
 } from "../components/Service/web3";
 import Web3Modal from "web3modal";
 import { useAccount } from "./account";
@@ -408,14 +409,14 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
   };
 
   const getTokenPayList = async (tokenId: number | string): Promise<any> => {
-    const provider = new JsonRpcProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
+    const provider = getProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
     const contract = new Contract(bheromarket.address, bheromarket.abi, provider);
     const listTokenPay = await contract.getTokenPayList(tokenId);
     return listTokenPay;
   };
 
   const getHousePayList = async (tokenId: number | string): Promise<any> => {
-    const provider = new JsonRpcProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
+    const provider = getProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
     const contract = new Contract(bhousemarket.address, bhousemarket.abi, provider);
     const listTokenPay = await contract.getTokenPayList(tokenId);
     return listTokenPay;
