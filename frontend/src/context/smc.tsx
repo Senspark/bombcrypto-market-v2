@@ -52,6 +52,8 @@ export interface Web3ContextValue {
   SenApprove: () => Promise<void>;
   SenAllowance: () => Promise<string>;
   doChangeNetwork: (chainId: number) => Promise<void>;
+  batchTransfer: (toAddress: string, tokenIds: number[] | string[]) => Promise<ContractTransactionReceipt | null>;
+  batchTransferBhouse: (toAddress: string, tokenIds: number[] | string[]) => Promise<ContractTransactionReceipt | null>;
 }
 
 export const contextWeb3 = createContext<Web3ContextValue | undefined>(undefined);
@@ -414,6 +416,34 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     return listTokenPay;
   };
 
+  const batchTransfer = async (toAddress: string, tokenIds: number[] | string[]): Promise<ContractTransactionReceipt | null> => {
+    try {
+      setLoading(true);
+      const tx = await InstanceBhero?.batchTransfer(toAddress, tokenIds);
+      const result = await tx?.wait();
+      setLoading(false);
+      return result ?? null;
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const batchTransferBhouse = async (toAddress: string, tokenIds: number[] | string[]): Promise<ContractTransactionReceipt | null> => {
+    try {
+      setLoading(true);
+      const tx = await InstanceBHouse?.batchTransfer(toAddress, tokenIds);
+      const result = await tx?.wait();
+      setLoading(false);
+      return result ?? null;
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
   const getHousePayList = async (tokenId: number | string): Promise<any> => {
     const provider = new JsonRpcProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
     const contract = new Contract(bhousemarket.address, bhousemarket.abi, provider);
@@ -459,6 +489,8 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     SenApprove,
     SenAllowance,
     doChangeNetwork,
+    batchTransfer,
+    batchTransferBhouse,
   };
 
   return (
