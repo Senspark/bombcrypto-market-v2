@@ -221,7 +221,8 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
       return "success";
     } catch (error) {
       setLoading(false);
-      return "fail";
+      console.error("createOrder error:", error);
+      throw error; // Let the UI handle the error details
     }
   };
 
@@ -333,9 +334,9 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
       setLoading(false);
       return "success";
     } catch (error) {
-      console.log(error);
       setLoading(false);
-      return "fail";
+      console.error("createOrderBhouse error:", error);
+      throw error;
     }
   };
 
