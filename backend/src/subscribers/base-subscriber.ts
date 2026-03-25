@@ -16,6 +16,7 @@ const TIME_PER_BLOCK_MS = 10_000; // 10 seconds wait for new blocks
 const TIME_PER_RETRY_MS = 5 * 60 * 1000; // 5 minutes between retry scans
 const MAX_FAILURES = 50; // Max retry attempts before giving up
 const PROCESS_CHUNK_DELAY_MS = 5000;
+const CONFIRMATION_DEPTH = 20; // Wait for 20 blocks of confirmation to avoid re-org issues
 
 /**
  * Subscriber configuration
@@ -226,20 +227,28 @@ export abstract class BaseSubscriber {
     private async processNextChunk(): Promise<void> {
         // Get current block from DB
         const fromBlock = await this.blockRepo.getBlockNumber();
-        let toBlock = fromBlock + BLOCK_STEP;
-
+        
         // Get current chain height
         const latestBlock = await this.client.getBlockNumber();
+        
+        // Apply confirmation depth to toBlock
+        let toBlock = latestBlock - CONFIRMATION_DEPTH;
 
-        // Adjust toBlock to not exceed available blocks (like Go version)
-        if (toBlock > latestBlock) {
-            toBlock = latestBlock;
+        // Ensure we don't go backwards if chain tip is below our depth? 
+        // No, stay at fromBlock if we haven't reached depth
+        if (toBlock < fromBlock) {
+            toBlock = fromBlock;
         }
 
-        // Only wait if we're completely caught up (no new blocks at all)
+        // Apply chunk size limit
+        if (toBlock > fromBlock + BLOCK_STEP) {
+            toBlock = fromBlock + BLOCK_STEP;
+        }
+
+        // Only wait if we're completely caught up to the confirmed tip
         if (toBlock <= fromBlock) {
-            await this.waitForNewBlock(fromBlock);
-            toBlock = await this.client.getBlockNumber();
+            await this.waitForConfirmedBlock(fromBlock);
+            return; // Loop will retry with new data
         }
 
         if (this.shouldShutdown()) return;
@@ -247,21 +256,20 @@ export abstract class BaseSubscriber {
         // Process the block range
         try {
             await this.processBlockRange(fromBlock, toBlock);
-            // Update the block number on success
+            // Update the block number ONLY on success
             await this.blockRepo.setBlockNumber(toBlock);
-            this.logger.info(`${this.getName()} processed blocks`, {
+            this.logger.info(`${this.getName()} successfully processed blocks`, {
                 fromBlock,
                 toBlock,
             });
         } catch (err) {
-            // Mark as failed and still advance to prevent getting stuck
-            await this.blockRepo.increaseFailure(fromBlock);
-            await this.blockRepo.setBlockNumber(toBlock);
-            this.logger.warn(`${this.getName()} failed to process blocks, marked for retry`, {
+            // Log failure but DO NOT advance the block pointer to ensure consistency
+            this.logger.error(`${this.getName()} failed to process block range, will retry`, {
                 fromBlock,
                 toBlock,
                 error: this.getErrorMessage(err),
             });
+            throw err; // Re-throw to trigger delay in the main loop
         }
 
         // Small delay between chunks
@@ -269,24 +277,25 @@ export abstract class BaseSubscriber {
     }
 
     /**
-     * Wait until at least one new block is available beyond currentBlock
-     * Only called when completely caught up to chain tip
+     * Wait until at least one new block is available with confirmation depth
      */
-    private async waitForNewBlock(currentBlock: number): Promise<void> {
+    private async waitForConfirmedBlock(currentBlock: number): Promise<void> {
         while (!this.shouldShutdown()) {
             try {
                 const latestBlock = await this.client.getBlockNumber();
+                const confirmedBlock = latestBlock - CONFIRMATION_DEPTH;
 
-                if (latestBlock > currentBlock) {
-                    return; // New block is available
+                if (confirmedBlock > currentBlock) {
+                    return; // Confirmed block is available
                 }
 
-                this.logger.debug(`${this.getName()} waiting for new block`, {
+                this.logger.debug(`${this.getName()} waiting for confirmed block`, {
                     currentBlock,
                     latestBlock,
+                    confirmedBlock,
                 });
             } catch (err) {
-                this.logger.warn(`${this.getName()} failed to get block number`, {
+                this.logger.warn(`${this.getName()} failed to get latest block number`, {
                     error: this.getErrorMessage(err),
                 });
             }
