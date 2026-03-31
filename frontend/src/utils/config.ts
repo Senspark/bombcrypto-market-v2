@@ -9,6 +9,7 @@ import address_polygon_test from "./constant/Address.Polygon.Test.json";
 import address_polygon_prod from "./constant/Address.Polygon.Prod.json";
 import BNBIcon from "../assets/images/Binance_icon.png";
 import PolygonIcon from "../assets/images/polygon_icon.png";
+import { rpcService } from "../components/Service/rpcService";
 
 export const isProduction = import.meta.env.VITE_IS_PROD === "true";
 
@@ -152,6 +153,28 @@ export const IMAGE_TOKEN_SHOW: Record<string, string> = {
 export const ChainId: Record<string, number> = {
   BNB: isProduction ? 56 : 97,
   Polygon: isProduction ? 137 : 80002,
+};
+
+export const getRpcByChainId = (chainId: number): string => {
+  const runtimeRpc = rpcService.getRpc(chainId);
+  if (runtimeRpc) {
+    return runtimeRpc;
+  }
+
+  if (chainId === ChainId.BNB) {
+    return RPC_BSC.BNB;
+  }
+  if (chainId === ChainId.Polygon) {
+    return RPC_BSC.Polygon;
+  }
+  return "";
+};
+
+export const getRpcByNetwork = (network: string): string => {
+  if (network === "Polygon") {
+    return getRpcByChainId(ChainId.Polygon);
+  }
+  return getRpcByChainId(ChainId.BNB);
 };
 
 interface NetworkConfigItem {

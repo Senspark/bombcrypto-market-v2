@@ -4,6 +4,7 @@ import axios from 'axios';
 import './index.css';
 import App from './App';
 import { normalizeResponse } from './utils/caseNormalizer';
+import { rpcService } from './components/Service/rpcService';
 
 // Temporary: Support both snake_case and camelCase during backend migration
 // TODO: Remove after migration complete
@@ -14,9 +15,23 @@ axios.interceptors.response.use((response) => {
   return response;
 });
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+/**
+ * We may not need await rpcService.initialize() here for the rpc init done
+ * It can be use fallback value if user try to use rpc before the init done
+ */
+const bootstrap = async (): Promise<void> => {
+  try {
+    rpcService.initialize().then();
+  } catch (error) {
+    console.error('[RPC] Bootstrap initialization failed:', error);
+  }
+
+  ReactDOM.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
+};
+
+void bootstrap();

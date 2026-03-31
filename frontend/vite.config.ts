@@ -18,6 +18,17 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/polygon/, ''),
       },
+      '/api/rpc/bsc': {
+        target: 'http://localhost:8302',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/api/rpc/polygon': {
+        target: 'http://localhost:8302',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+
       '/local-api': {
         target: 'http://localhost:3003',
         changeOrigin: true,
