@@ -24,34 +24,51 @@ const Inventory: React.FC<InventoryProps> = (props) => {
   const { getBHeroDetail, address } = useContract();
   const { updateClear, network } = useAccount();
 
-  const loadHero = async () => {
-    setOwn({ heroes: [], houses: [] });
-    setList({ heroes: [], houses: [] });
-    const heroes = await getBHeroDetail();
-    const params = {
-      walletAddress: address,
-      wallet_address: address,
-      heroes: JSON.parse(
-        JSON.stringify(heroes, (_, v) =>
-          typeof v === "bigint" ? v.toString() : v
-        )
-      ),
-    };
-
-    const result = await axios.post(getAPI(network) + "users/decode", params);
-    const res = await axios.get(
-      getAPI(network) +
-        "transactions/heroes/search?status=listing&seller_wallet_address=" +
-        address
-    );
-    const data = await getListTokenPay(res);
-    setOwn((state) => ({ ...state, heroes: (data as unknown[]) || [] }));
-    setList(result.data);
-  };
+  const {setLoading} = useContract();
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadHero = async () => {
+      if (isMounted) {
+        setOwn({ heroes: [], houses: [] });
+        setList({ heroes: [], houses: [] });
+      }
+      setLoading(true);
+      try {
+        const heroes = await getBHeroDetail();
+        const params = {
+          walletAddress: address,
+          wallet_address: address,
+          heroes: JSON.parse(
+            JSON.stringify(heroes, (_, v) =>
+              typeof v === "bigint" ? v.toString() : v
+            )
+          ),
+        };
+
+        const result = await axios.post(getAPI(network) + "users/decode", params);
+        const res = await axios.get(
+          getAPI(network) +
+            "transactions/heroes/search?status=listing&seller_wallet_address=" +
+            address
+        );
+        const data = await getListTokenPay(res);
+        if (isMounted) {
+          setOwn((state) => ({ ...state, heroes: (data as unknown[]) || [] }));
+          setList(result.data);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadHero();
     updateClear(loadHero);
+
+    return () => {
+      isMounted = false;
+    };
   }, [network]);
   return (
     <Recently>

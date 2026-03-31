@@ -23,34 +23,51 @@ const Inventory: React.FC<InventoryProps> = (props) => {
   const [own, setOwn] = useState<InventoryState>({ heroes: [], houses: [] });
   const { address, getBHouseDetail } = useContract();
   const { updateClear, network } = useAccount();
+  const {setLoading} = useContract();
 
-  const loadHero = async () => {
-    setOwn({ heroes: [], houses: [] });
-    setList({ heroes: [], houses: [] });
-    const houses = await getBHouseDetail();
-    const params = {
-      walletAddress: address,
-      wallet_address: address,
-      houses: JSON.parse(
-        JSON.stringify(houses, (_, v) =>
-          typeof v === "bigint" ? v.toString() : v
-        )
-      ),
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHero = async () => {
+      if (isMounted) {
+        setOwn({ heroes: [], houses: [] });
+        setList({ heroes: [], houses: [] });
+      }
+      setLoading(true);
+      try {
+        const houses = await getBHouseDetail();
+        const params = {
+          walletAddress: address,
+          wallet_address: address,
+          houses: JSON.parse(
+            JSON.stringify(houses, (_, v) =>
+              typeof v === "bigint" ? v.toString() : v
+            )
+          ),
+        };
+
+        const result = await axios.post(getAPI(network) + "users/decode", params);
+        const res = await axios.get(
+          getAPI(network) +
+            "transactions/houses/search?status=listing&seller_wallet_address=" +
+            address
+        );
+        const data = await getListTokenPay(res, true);
+        if (isMounted) {
+          setOwn((state) => ({ ...state, houses: (data as unknown[]) || [] }));
+          setList(result.data);
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const result = await axios.post(getAPI(network) + "users/decode", params);
-    const res = await axios.get(
-      getAPI(network) +
-        "transactions/houses/search?status=listing&seller_wallet_address=" +
-        address
-    );
-    const data = await getListTokenPay(res, true);
-    setOwn((state) => ({ ...state, houses: (data as unknown[]) || [] }));
-    setList(result.data);
-  };
-  updateClear(loadHero);
-  useEffect(() => {
     loadHero();
+    updateClear(loadHero);
+
+    return () => {
+      isMounted = false;
+    };
   }, [network]);
   return (
     <Recently>
