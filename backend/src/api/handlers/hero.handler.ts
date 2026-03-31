@@ -1,8 +1,9 @@
 import {Request, Response} from 'express';
 import {IHeroTransactionRepository} from '@/domain/interfaces/repository';
-import {createEmptyHeroTxFilterContext, HeroTxFilterContext} from '@/domain/models/hero';
+import {createEmptyHeroTxFilterContext, HeroTxFilterContext, parseCompactShieldData} from '@/domain/models/hero';
 import {generateCacheKeyFromData, ICache} from '@/infrastructure/cache/memory-cache';
-import {SearchIdTracker} from '@/infrastructure/redis/client';
+import {IRedisClient, SearchIdTracker} from '@/infrastructure/redis/client';
+import {shieldDataKey, shieldFetchKey} from '@/infrastructure/redis/redis-keys';
 import {BlockChainCenterApi} from '@/infrastructure/blockchain/blockchain-center-api';
 import {Logger} from '@/utils/logger';
 import {asyncHandler, HttpErrors} from '../middleware/error-handler';
@@ -28,6 +29,8 @@ export interface HeroHandlerDeps {
     searchIdTracker: SearchIdTracker;
     blockchainApi: BlockChainCenterApi | null;
     contractAddress: string;
+    redis: IRedisClient | null;
+    network: string;
     logger: Logger;
 }
 
@@ -108,6 +111,9 @@ function parseHeroFilterContext(query: Request['query']): HeroTxFilterContext {
  * Search hero transactions
  */
 export function createSearchHandler(deps: HeroHandlerDeps) {
+    const shieldHashKey = shieldDataKey(deps.network);
+    const shieldFetchSetKey = shieldFetchKey(deps.network);
+
     return asyncHandler(async (req: Request, res: Response) => {
         const filterContext = parseHeroFilterContext(req.query);
 
@@ -116,6 +122,28 @@ export function createSearchHandler(deps: HeroHandlerDeps) {
         const result = await deps.cache.get(cacheKey, async () => {
             return deps.heroTxRepo.filter(filterContext);
         });
+
+        // Enrich with shield data from Redis (after cache, so every response gets fresh data)
+        if (deps.redis && result.transactions.length > 0) {
+            try {
+                const tokenIds = result.transactions.map((tx) => tx.tokenId.toString());
+                const shieldValues = await deps.redis.hmget(shieldHashKey, ...tokenIds);
+
+                for (let i = 0; i < result.transactions.length; i++) {
+                    const compact = shieldValues[i];
+                    result.transactions[i].shieldData = compact ? parseCompactShieldData(compact) : null;
+                }
+
+                const uncachedTokenIds = tokenIds.filter((_, i) => shieldValues[i] === null);
+                if (uncachedTokenIds.length > 0) {
+                    deps.redis.addToSet(shieldFetchSetKey, ...uncachedTokenIds).catch((err) => {
+                        deps.logger.warn('Failed to queue shield fetch:', err);
+                    });
+                }
+            } catch (err) {
+                deps.logger.warn('Failed to enrich shield data:', err);
+            }
+        }
 
         // Track search IDs in background (non-blocking)
         if (result.transactions.length > 0) {

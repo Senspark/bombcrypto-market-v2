@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { skills, skillsDesc, skillsDescHeroS, skillsHeroS } from "../../../utils/helper";
 import { IconItem } from "../../common/style";
-import { useAccount } from "../../../context/account";
-import { getShieldData } from "../../Service/api";
 import _ from "lodash";
 import { HeroType } from "../../../utils/config";
-import { BHero, ShieldOutput } from "../../../types";
+import { BHero } from "../../../types";
 
 const Box = styled.div`
   width: 100%;
@@ -77,19 +75,9 @@ export const Skill: React.FC<SkillProps> = ({ data }) => {
   const isHeroS =
     !_.isEmpty(data?.abilities_hero_s) &&
     !_.includes(data?.abilities_hero_s, 0);
-  const { network } = useAccount();
   const abilities = data.abilities.map((item) => (typeof item === 'string' ? parseInt(item) : item)) || [];
   const abilities_hero_s = data.abilities_hero_s || [];
-  const [shieldData, setShieldData] = useState<ShieldOutput | null>(null);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    const resp = await getShieldData(data.token_id, network);
-    setShieldData(resp);
-  };
+  const shieldData = data.shieldData ?? null;
 
   return (
     <Box>

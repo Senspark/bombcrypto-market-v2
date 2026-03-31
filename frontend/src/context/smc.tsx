@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { ChainId, NETWORK, RPC_BSC, SmartContracts } from "../utils/config";
+import { ChainId, NETWORK, SmartContracts, getRpcByNetwork } from "../utils/config";
 import { BoxLoading } from "react-loadingg";
 import { BrowserProvider, Contract, JsonRpcProvider, parseEther, Signer, ContractTransactionReceipt, Block } from "ethers";
 import {
@@ -408,14 +408,14 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
   };
 
   const getTokenPayList = async (tokenId: number | string): Promise<any> => {
-    const provider = new JsonRpcProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
+    const provider = new JsonRpcProvider(getRpcByNetwork(network));
     const contract = new Contract(bheromarket.address, bheromarket.abi, provider);
     const listTokenPay = await contract.getTokenPayList(tokenId);
     return listTokenPay;
   };
 
   const getHousePayList = async (tokenId: number | string): Promise<any> => {
-    const provider = new JsonRpcProvider(isUsePolygon ? RPC_BSC.Polygon : RPC_BSC.BNB);
+    const provider = new JsonRpcProvider(getRpcByNetwork(network));
     const contract = new Contract(bhousemarket.address, bhousemarket.abi, provider);
     const listTokenPay = await contract.getTokenPayList(tokenId);
     return listTokenPay;

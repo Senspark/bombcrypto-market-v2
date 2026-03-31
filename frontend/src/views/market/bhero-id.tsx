@@ -18,7 +18,7 @@ import {
   offListenNetworkChange,
 } from "../../components/Service/web3";
 import _ from "lodash";
-import { getShieldData } from "../../components/Service/api";
+import { ShieldOutput } from "../../types/hero";
 
 interface RouteParams {
   id: string;
@@ -31,11 +31,7 @@ interface HeroData {
   amount: string;
   isToken?: string;
   abilities_hero_s?: number[];
-  [key: string]: unknown;
-}
-
-interface ShieldData {
-  heroType?: string;
+  shieldData?: ShieldOutput | null;
   [key: string]: unknown;
 }
 
@@ -46,7 +42,6 @@ const MarketHeroById: React.FC = () => {
   const { getListTokenPay } = useGetTokenPayList();
   const { auth, network } = useAccount();
   const [isFirstRun, setIsFirstRun] = useState(true);
-  const [shieldData, setShieldData] = useState<ShieldData | null>(null);
   const [isHeroS, setIsHeroS] = useState(false);
 
   useEffect(() => {
@@ -66,9 +61,6 @@ const MarketHeroById: React.FC = () => {
           !_.isEmpty(dt?.abilities_hero_s) &&
           !_.includes(dt?.abilities_hero_s, 0);
         setIsHeroS(heroS);
-
-        const resp = await getShieldData(dt?.token_id, network);
-        setShieldData(resp as ShieldData | null);
       }
     })();
   }, [params]);
@@ -140,7 +132,7 @@ const MarketHeroById: React.FC = () => {
                   <div className="level">Level {data.level}</div>
                   <HeroIcon
                     data={data as any}
-                    heroType={isHeroS ? HeroType.s : (shieldData?.heroType as any)}
+                    heroType={isHeroS ? HeroType.s : (data.shieldData?.heroType as any)}
                     iconStyle={{ width: "1.875rem", height: "3rem" }}
                   />
                 </div>
@@ -165,7 +157,7 @@ const MarketHeroById: React.FC = () => {
             </div>
             <Right>
               <About data={data as any} />
-              <Stats data={data as any} network={network} />
+              <Stats data={data as any} />
               <Skill data={data as any} />
             </Right>
           </Content>

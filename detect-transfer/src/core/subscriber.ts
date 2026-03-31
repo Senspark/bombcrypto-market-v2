@@ -1,11 +1,11 @@
 import {getAddress} from 'ethers';
 import {BlockChainCenterApi} from '@/infrastructure/blockchain/blockchain-center-api';
 import {RedisClient} from '@/infrastructure/redis/client';
+import {searchIdsKey, cooldownKeyPrefix, shieldDataKey, shieldFetchKey, COOLDOWN_TTL_SECONDS} from '@/infrastructure/redis/redis-keys';
+import {RateLimitError, ShieldApi} from '@/infrastructure/shield/shield-api';
 import {DatabasePool} from '@/infrastructure/database/postgres';
 import {SubscriberConfig} from '@/config/types';
 import {Logger} from '@/utils/logger';
-
-const COOLDOWN_TTL_SECONDS = 900; // 15 minutes
 
 const OWNER_OF_ABI = [{
     inputs: [{internalType: 'uint256', name: 'tokenId', type: 'uint256'}],
@@ -57,26 +57,30 @@ export class Subscriber {
     private marketAddress: string;
     private dbTable: string;
     private dbSearchPath: string;
-    private typeStr: string;
-    private redisNetworkSuffix: string;
+    private typeStr: 'HERO' | 'HOUSE';
     private redisKeyIds: string;
     private redisKeyCooldownPrefix: string;
+    private redisKeyShield: string;
+    private redisKeyShieldFetch: string;
     private redis: RedisClient;
     private db: DatabasePool;
     private logger: Logger;
+    private shieldApi: ShieldApi | undefined;
 
     constructor(
         config: SubscriberConfig,
         api: BlockChainCenterApi,
         redis: RedisClient,
         db: DatabasePool,
-        logger: Logger
+        logger: Logger,
+        shieldApi?: ShieldApi
     ) {
         this.config = config;
         this.api = api;
         this.redis = redis;
         this.db = db;
         this.logger = logger;
+        this.shieldApi = shieldApi;
 
         this.erc721Address = getAddress(config.erc721Address);
         this.marketAddress = getAddress(config.marketAddress);
@@ -91,9 +95,10 @@ export class Subscriber {
             throw new Error(`Unknown table type: ${this.dbTable}`);
         }
 
-        this.redisNetworkSuffix = config.network === 'POLYGON' ? 'POL' : config.network;
-        this.redisKeyIds = `MKP_${this.typeStr}_SEARCH_IDS_${this.redisNetworkSuffix}`;
-        this.redisKeyCooldownPrefix = `MKP_${this.typeStr}_COOLDOWN_${this.redisNetworkSuffix}:`;
+        this.redisKeyIds = searchIdsKey(this.typeStr, config.network);
+        this.redisKeyCooldownPrefix = cooldownKeyPrefix(this.typeStr, config.network);
+        this.redisKeyShield = shieldDataKey(config.network);
+        this.redisKeyShieldFetch = shieldFetchKey(config.network);
 
         this.logger.info(`Initialized Subscriber for ${this.redisKeyIds}`);
     }
@@ -169,6 +174,10 @@ export class Subscriber {
             } catch (e) {
                 this.logger.error(`error when checking approved: ${e} token_id: ${tokenId}`);
             }
+
+            if (this.typeStr === 'HERO' && this.shieldApi) {
+                await this.redis.addToSet(this.redisKeyShieldFetch, tokenId.toString());
+            }
         } catch (e) {
             this.logger.error(`Unexpected error verifying order ${orderDbId}: ${e}`);
         }
@@ -180,6 +189,43 @@ export class Subscriber {
             [orderDbId]
         );
         this.logger.info(`deleted: ${tokenId} (DB ID: ${orderDbId}) reason: ${reason}`);
+    }
+
+    async processShieldFetchQueue(): Promise<number> {
+        if (this.typeStr !== 'HERO' || !this.shieldApi) return 0;
+
+        try {
+            const tokenIds = await this.redis.popManyFromSet(this.redisKeyShieldFetch, 200);
+            if (tokenIds.length === 0) return 0;
+
+            const heroIds = tokenIds.map(id => Number(id));
+            const shieldMap = await this.shieldApi.fetchBatchShieldData(heroIds, this.config.network);
+
+            const fieldValues: Record<string, string> = {};
+            for (const [tokenId, compactData] of shieldMap) {
+                if (compactData) {
+                    fieldValues[tokenId] = compactData;
+                }
+            }
+
+            if (Object.keys(fieldValues).length > 0) {
+                await this.redis.hmset(this.redisKeyShield, fieldValues);
+                await this.redis.hmexpire(this.redisKeyShield, COOLDOWN_TTL_SECONDS, Object.keys(fieldValues));
+            }
+
+            this.logger.info(`Batch cached shield data for ${Object.keys(fieldValues).length}/${tokenIds.length} heroes`);
+            return tokenIds.length;
+        } catch (e) {
+            if (e instanceof RateLimitError) {
+                this.logger.warn(`Shield API rate limited, backing off ${e.retryAfterMs}ms`);
+                await this.sleep(e.retryAfterMs);
+                return 0;
+            }
+
+            this.logger.error(`Error in processShieldFetchQueue: ${e}`);
+            await this.sleep(1000);
+            return 0;
+        }
     }
 
     async processBatch(batchSize: number = 50): Promise<number> {

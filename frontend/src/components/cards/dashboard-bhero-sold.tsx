@@ -1,19 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import { Tag } from "../common/style";
 import { mapRarity, minAddress, bcoinFormat, mapTag } from "../../utils/helper";
 import { HeroIcon } from "../hero";
 import { IMAGE_TOKEN_SHOW, HeroType } from "../../utils/config";
-import { useAccount } from "../../context/account";
-import { getShieldData } from "../Service/api";
 import _ from "lodash";
-
-interface ShieldData {
-  heroType?: string;
-  shieldAmount?: string | number;
-  currentStakeBcoin?: number;
-  currentStakeSen?: number;
-}
+import { ShieldOutput } from "../../types/hero";
 
 interface HeroData {
   token_id: string | number;
@@ -26,6 +18,7 @@ interface HeroData {
   abilities_hero_s?: number[];
   skin: number;
   color: number;
+  shieldData?: ShieldOutput | null;
 }
 
 interface DashboardBheroSoldProps {
@@ -36,17 +29,7 @@ const BHeroFullWidth: React.FC<DashboardBheroSoldProps> = ({ data }) => {
   const isHeroS =
     !_.isEmpty(data?.abilities_hero_s) &&
     !_.includes(data?.abilities_hero_s, 0);
-  const { network } = useAccount();
-  const [shieldData, setShieldData] = useState<ShieldData | null>(null);
-
-  useEffect(() => {
-    if (!isHeroS) fetchData();
-  }, [data]);
-
-  const fetchData = async () => {
-    const resp = await getShieldData(data.token_id, network);
-    setShieldData(resp);
-  };
+  const shieldData = data.shieldData ?? null;
 
   return (
     <Item>

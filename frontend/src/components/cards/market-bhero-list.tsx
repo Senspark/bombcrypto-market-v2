@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import { Tag, IconItem, IconSkill, IconCoinStake } from "../common/style";
 import ButtonBuy from "../buttons/buy";
@@ -14,14 +14,7 @@ import {
 import { HeroIcon } from "../hero";
 import _ from "lodash";
 import { IMAGE_TOKEN_SHOW, HeroType } from "../../utils/config";
-import { getShieldData } from "../Service/api";
-
-interface ShieldData {
-  heroType?: string;
-  shieldAmount?: string | number;
-  currentStakeBcoin?: number;
-  currentStakeSen?: number;
-}
+import { ShieldOutput } from "../../types/hero";
 
 interface HeroData {
   token_id: string | number;
@@ -39,6 +32,7 @@ interface HeroData {
   skin: number;
   color: number;
   seller_wallet_address?: string;
+  shieldData?: ShieldOutput | null;
 }
 
 interface MarketBheroListProps {
@@ -52,20 +46,9 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
     !_.includes(data?.abilities_hero_s, 0);
   const abilities = data.abilities || [];
   const addPower = levelToPower[data.level];
-  const [shieldData, setShieldData] = useState<ShieldData | null>(null);
-  const [staked, setStaked] = useState(0);
-  const [stakedSen, setStakedSen] = useState(0);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    const resp = await getShieldData(data.token_id, network);
-    setShieldData(resp);
-    setStaked(Math.floor(resp?.currentStakeBcoin || 0));
-    setStakedSen(Math.floor(resp?.currentStakeSen || 0));
-  };
+  const shieldData = data.shieldData ?? null;
+  const staked = Math.floor(shieldData?.currentStakeBcoin || 0);
+  const stakedSen = Math.floor(shieldData?.currentStakeSen || 0);
 
   return (
     <Item>
@@ -134,7 +117,7 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
                     <span className="fs-shield">
                       {shieldData?.shieldAmount
                         ? shieldData?.shieldAmount
-                        : `--/${mapRarityShield(data.rarity)}`}
+                        : `?/${mapRarityShield(data.rarity)}`}
                     </span>
                   </div>
                 </div>
@@ -147,13 +130,13 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
           <div className="flex-skill">
             <div className="skill">
               <IconCoinStake src="/icons/token.png" />
-              <span>{staked ? staked : 0}</span>
+              <span>{shieldData ? staked : "?"}</span>
             </div>
           </div>
           <div className="flex-skill">
             <div className="skill">
               <IconCoinStake src="/icons/sen_token.png" />
-              <span>{stakedSen ? stakedSen : 0}</span>
+              <span>{shieldData ? stakedSen : "?"}</span>
             </div>
           </div>
         </div>
@@ -188,7 +171,7 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
             data={data}
             price={data.amount}
             id={data.token_id}
-            fetchData={fetchData}
+            fetchData={() => {}}
           />
           <div className="link">
             <LinkProfile type="bhero" id={data.token_id} />

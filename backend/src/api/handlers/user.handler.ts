@@ -3,6 +3,9 @@ import {IWalletHistoryRepository} from '@/domain/interfaces/repository';
 import {createEmptyWalletTxFilterContext, UserDetailsReq, UserRepr} from '@/domain/models/user';
 import {parseHeroDetails, parseHouseDetails} from '@/utils/details-parser';
 import {generateCacheKeyFromData, ICache} from '@/infrastructure/cache/memory-cache';
+import {IRedisClient} from '@/infrastructure/redis/client';
+import {shieldDataKey, shieldFetchKey} from '@/infrastructure/redis/redis-keys';
+import {parseCompactShieldData} from '@/domain/models/hero';
 import {Logger} from '@/utils/logger';
 import {asyncHandler, HttpErrors} from '../middleware/error-handler';
 
@@ -10,6 +13,8 @@ import {asyncHandler, HttpErrors} from '../middleware/error-handler';
 export interface UserHandlerDeps {
     walletHistoryRepo: IWalletHistoryRepository;
     cache: ICache;
+    redis: IRedisClient | null;
+    network: string;
     logger: Logger;
 }
 
@@ -18,6 +23,9 @@ export interface UserHandlerDeps {
  * Decode wallet details (heroes and houses from tokenDetail strings)
  */
 export function createDecodeHandler(deps: UserHandlerDeps) {
+    const shieldHashKey = shieldDataKey(deps.network);
+    const shieldFetchSetKey = shieldFetchKey(deps.network);
+
     return asyncHandler(async (req: Request, res: Response) => {
         const body = req.body as UserDetailsReq;
 
@@ -37,6 +45,28 @@ export function createDecodeHandler(deps: UserHandlerDeps) {
                 return null;
             }
         }).filter((h): h is NonNullable<typeof h> => h !== null);
+
+        // Enrich heroes with shield data from Redis
+        if (deps.redis && heroes.length > 0) {
+            try {
+                const tokenIds = heroes.map((h) => h.id.toString());
+                const shieldValues = await deps.redis.hmget(shieldHashKey, ...tokenIds);
+
+                for (let i = 0; i < heroes.length; i++) {
+                    const compact = shieldValues[i];
+                    heroes[i].shieldData = compact ? parseCompactShieldData(compact) : null;
+                }
+
+                const uncachedTokenIds = tokenIds.filter((_, i) => shieldValues[i] === null);
+                if (uncachedTokenIds.length > 0) {
+                    deps.redis.addToSet(shieldFetchSetKey, ...uncachedTokenIds).catch((err) => {
+                        deps.logger.warn('Failed to queue shield fetch:', err);
+                    });
+                }
+            } catch (err) {
+                deps.logger.warn('Failed to enrich shield data:', err);
+            }
+        }
 
         // Decode houses
         const houses = (body.houses || []).map((houseDetail) => {

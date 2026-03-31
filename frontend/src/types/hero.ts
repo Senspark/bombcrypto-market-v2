@@ -35,6 +35,9 @@ export interface BHero {
   isToken?: string;
   ref_id?: number;
   index?: number;
+
+  // Shield & Stake data (from backend)
+  shieldData?: ShieldOutput | null;
 }
 
 export interface ShieldOutput {

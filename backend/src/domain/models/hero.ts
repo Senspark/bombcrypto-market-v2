@@ -1,5 +1,34 @@
 import {PaginatedResponse, PaginationQuery} from './pagination';
 
+// Shield & Stake data (from Redis cache)
+export interface ShieldData {
+    shieldAmount: string;
+    shieldLevel: number;
+    heroType: string;
+    rarity: string;
+    currentStake: number;
+    mustStake: number;
+    currentStakeBcoin: number;
+    currentStakeSen: number;
+}
+
+// Parse compact CSV shield data: "1488/1750,1,S,Legend,0,0,0,0"
+export function parseCompactShieldData(compact: string): ShieldData | null {
+    const parts = compact.split(',');
+    if (parts.length !== 8) return null;
+
+    return {
+        shieldAmount: parts[0],
+        shieldLevel: Number(parts[1]),
+        heroType: parts[2],
+        rarity: parts[3],
+        currentStake: Number(parts[4]),
+        mustStake: Number(parts[5]),
+        currentStakeBcoin: Number(parts[6]),
+        currentStakeSen: Number(parts[7]),
+    };
+}
+
 // Hero NFT representation (decoded from tokenDetail)
 export interface HeroRepr {
     id: number;
@@ -17,6 +46,7 @@ export interface HeroRepr {
     abilities: number[];
     abilitiesHeroS: number[];
     nftBlockNumber: number;
+    shieldData?: ShieldData | null;
 }
 
 // Hero transaction request (for database insert)
@@ -59,6 +89,7 @@ export interface HeroTxRepr {
     abilitiesHeroS: number[];
     nftBlockNumber: number;
     updatedAt: Date;
+    shieldData?: ShieldData | null;
 }
 
 // Hero transaction list response (paginated)

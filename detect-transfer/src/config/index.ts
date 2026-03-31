@@ -21,6 +21,10 @@ export function getBlockchainCenterApiUrl(): string {
     return getEnvOrThrow('BLOCKCHAIN_CENTER_API_URL');
 }
 
+export function getShieldApiUrl(): string {
+    return getEnvOrThrow('SHIELD_API_URL');
+}
+
 export function loadAppConfig(): AppConfig {
     const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -38,6 +42,7 @@ export function loadAppConfig(): AppConfig {
         blockchainCenter: {
             apiUrl: getBlockchainCenterApiUrl(),
         },
+        shieldApiUrl: getShieldApiUrl(),
     };
 
     return appConfigSchema.parse(rawConfig);
