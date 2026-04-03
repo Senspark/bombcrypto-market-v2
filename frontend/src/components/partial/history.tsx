@@ -77,6 +77,14 @@ const History: React.FC = () => {
           return "LEGEND";
         case 5:
           return "SUPER LEGEND";
+        case 6:
+          return "MEGA";
+        case 7:
+          return "SUPER MEGA";
+        case 8:
+          return "MYSTIC";
+        case 9:
+          return "SUPER MYSTIC";
         default:
           return "UNKNOWN";
       }
@@ -96,6 +104,14 @@ const History: React.FC = () => {
           return "#ffc207";
         case 5:
           return "#ff0759";
+        case 6:
+          return "#35a0d0";
+        case 7:
+          return "#076bd4";
+        case 8:
+          return "#6b6de6";
+        case 9:
+          return "#c8568e";
         default:
           return "#FF0000";
       }
