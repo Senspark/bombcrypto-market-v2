@@ -133,6 +133,10 @@ const Statistics: React.FC = () => {
     { label: "Epic", value: 3 },
     { label: "Legend", value: 4 },
     { label: "SP Legend", value: 5 },
+    { label: "Mega", value: 6 },
+    { label: "Super Mega", value: 7 },
+    { label: "Mystic", value: 8 },
+    { label: "Super Mystic", value: 9 },
   ];
 
   const optionsToken = [

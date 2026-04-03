@@ -68,6 +68,18 @@ export const Tag = styled.div`
   &.superlegend {
     background: #ff0759;
   }
+  &.mega {
+    background: #35a0d0;
+  }
+  &.supermega {
+    background: #076bd4;
+  }
+  &.mystic {
+    background: #6b6de6;
+  }
+  &.supermystic {
+    background: #c8568e;
+  }
 `;
 
 export const IconItem = styled.img<IconItemProps>`
