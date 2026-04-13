@@ -4,10 +4,12 @@ import { Tag } from "../common/style";
 import { mapRarity, bcoinFormat, mapTag } from "../../utils/helper";
 import { HeroIcon } from "../hero";
 import { IMAGE_TOKEN_SHOW } from "../../utils/config";
+import "../../styles/animations.css";
 
 interface HeroData {
   token_id: string | number;
   rarity: number;
+  level: number;
   amount: string | number | bigint;
   isToken?: string;
   skin: number;
@@ -26,7 +28,14 @@ const BHeroFullWidth: React.FC<BHeroCardProps> = ({ data }) => {
         <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)}</Tag>
       </div>
 
-      <HeroIcon data={data} />
+      <div className="icon-hero-wrap">
+        <div className={`level-info ${data.level >= 6 ? "flaming-name" : ""}`}>
+           LVL {data.level} {data.level >= 6 && <span className="godlike-badge">GODLIKE</span>}
+        </div>
+        <div className={data.level >= 6 ? "godlike-aura" : ""}>
+          <HeroIcon data={data} />
+        </div>
+      </div>
       <div className="footer">
         <img
           src={IMAGE_TOKEN_SHOW[data?.isToken || ""] || "/icons/token.png"}
@@ -57,10 +66,19 @@ const Item = styled.div`
       margin: 0;
     }
   }
-  .icon-hero {
-    margin-top: 3.063rem;
+  .icon-hero-wrap {
+    margin-top: 2rem;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    
+    .level-info {
+        font-size: 0.9rem;
+        color: #fff;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
 
     img {
       width: 6.875rem;

@@ -219,7 +219,7 @@ input[type="number"] {
   opacity: 1;
 }
 
-/*web3 Modal*/
+/* web3 Modal */
 .web3modal-modal-container {
   align-items: start;
   margin-top: 100px;
@@ -229,3 +229,41 @@ input[type="number"] {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   max-width: 500px;
 }
+
+/* Hero Evolution V2 - Godlike Effects */
+.godlike-level {
+  color: #ffaa00 !important;
+  text-shadow: 0 0 10px #ffcc00, 0 0 20px #ff6600;
+  animation: godlike-pulse 1.5s infinite alternate;
+  font-weight: 900;
+}
+
+.godlike-aura {
+  position: relative;
+  box-shadow: 0 0 15px rgba(255, 170, 0, 0.6);
+  border: 1px solid rgba(255, 204, 0, 0.8);
+}
+
+.godlike-aura::after {
+  content: "";
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, #ffcc00, #ff6600, #ffcc00);
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0.7;
+  animation: aura-flame 2s linear infinite;
+}
+
+@keyframes godlike-pulse {
+  from { transform: scale(1); filter: brightness(1); }
+  to { transform: scale(1.1); filter: brightness(1.5); }
+}
+
+@keyframes aura-flame {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.05); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
