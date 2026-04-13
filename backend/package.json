@@ -10,7 +10,8 @@
     "dev:hero:bsc": "ENTRY_POINT=hero node --env-file=.prod.bsc.env -r ts-node/register -r tsconfig-paths/register src/cmd/main.ts",
     "dev:hero:pol": "ENTRY_POINT=hero node --env-file=.prod.pol.env -r ts-node/register -r tsconfig-paths/register src/cmd/main.ts",
     "dev:house:bsc": "ENTRY_POINT=house node --env-file=.prod.bsc.env -r ts-node/register -r tsconfig-paths/register src/cmd/main.ts",
-    "dev:house:pol": "ENTRY_POINT=house node --env-file=.prod.pol.env -r ts-node/register -r tsconfig-paths/register src/cmd/main.ts"
+    "dev:house:pol": "ENTRY_POINT=house node --env-file=.prod.pol.env -r ts-node/register -r tsconfig-paths/register src/cmd/main.ts",
+    "test": "vitest run"
   },
   "keywords": [
     "express",
