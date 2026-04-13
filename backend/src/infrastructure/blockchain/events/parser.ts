@@ -14,6 +14,7 @@ export const EVENT_TOPICS = {
     CREATE_ORDER: keccak256('CreateOrder(uint256,uint256,uint256,address)'),
     SOLD: keccak256('Sold(uint256,uint256,uint256,address,address)'),
     CANCEL_ORDER: keccak256('CancelOrder(uint256)'),
+    BALANCE_CHANGED: keccak256('BalanceChanged(address,uint256,uint256)'),
 } as const;
 
 /**
@@ -28,7 +29,7 @@ export const ALL_MARKET_TOPICS = [
 /**
  * Event types
  */
-export type MarketEventType = 'CreateOrder' | 'Sold' | 'CancelOrder';
+export type MarketEventType = 'CreateOrder' | 'Sold' | 'CancelOrder' | 'BalanceChanged';
 
 /**
  * CreateOrder event data
@@ -71,9 +72,22 @@ export interface CancelOrderEvent {
 }
 
 /**
+ * BalanceChanged event data (staking)
+ */
+export interface BalanceChangedEvent {
+    type: 'BalanceChanged';
+    token: string;
+    tokenId: bigint;
+    amount: bigint;
+    transactionHash: string;
+    blockNumber: number;
+    logIndex: number;
+}
+
+/**
  * Union type for all market events
  */
-export type MarketEvent = CreateOrderEvent | SoldEvent | CancelOrderEvent;
+export type MarketEvent = CreateOrderEvent | SoldEvent | CancelOrderEvent | BalanceChangedEvent;
 
 /**
  * EventParser for parsing market contract events
@@ -138,6 +152,8 @@ export class EventParser {
                 return 'Sold';
             case EVENT_TOPICS.CANCEL_ORDER:
                 return 'CancelOrder';
+            case EVENT_TOPICS.BALANCE_CHANGED:
+                return 'BalanceChanged';
             default:
                 return null;
         }
@@ -200,6 +216,15 @@ export class EventParser {
                 return {
                     type: 'CancelOrder',
                     tokenId: parsed.args[0],
+                    ...baseData,
+                };
+
+            case 'BalanceChanged':
+                return {
+                    type: 'BalanceChanged',
+                    token: parsed.args[0],
+                    tokenId: parsed.args[1],
+                    amount: parsed.args[2],
                     ...baseData,
                 };
 

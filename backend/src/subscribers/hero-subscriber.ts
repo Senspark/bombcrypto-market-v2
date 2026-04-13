@@ -14,6 +14,8 @@ import {
     CreateOrderEvent,
     EventParser,
     SoldEvent,
+    BalanceChangedEvent,
+    EVENT_TOPICS,
 } from '@/infrastructure/blockchain/events/parser';
 import {HeroTxReq, TX_STATUS} from '@/domain/models/hero';
 import {Logger} from '@/utils/logger';
@@ -55,7 +57,10 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     protected getEventTopics(): string[] {
-        return ALL_MARKET_TOPICS;
+        return [
+            ...ALL_MARKET_TOPICS,
+            EVENT_TOPICS.BALANCE_CHANGED,
+        ];
     }
 
     /**
@@ -100,6 +105,9 @@ export class HeroSubscriber extends BaseSubscriber {
                 break;
             case 'CancelOrder':
                 await this.handleCancelOrder(event);
+                break;
+            case 'BalanceChanged':
+                await this.handleBalanceChanged(event);
                 break;
         }
     }
@@ -189,6 +197,30 @@ export class HeroSubscriber extends BaseSubscriber {
         this.logger.info('HeroSubscriber processed CancelOrder', {
             tokenId: event.tokenId.toString(),
         });
+    }
+
+    /**
+     * Handle BalanceChanged event - update staking details
+     */
+    private async handleBalanceChanged(event: BalanceChangedEvent): Promise<void> {
+        this.logger.info('HeroSubscriber processed BalanceChanged', {
+            tokenId: event.tokenId.toString(),
+            amount: event.amount.toString(),
+            token: event.token,
+        });
+
+        // If the balance changed (especially if it decreased to 0), 
+        // we should notify the game server to re-verify the bomber stake.
+        // We can do this by hitting the soldNotifyUrl if it's dual-purpose, 
+        // or a specific sync URL if available.
+        // For now, we logging it is the primary step to identify errors.
+        
+        // Safety check: if amount is 0, it definitely means unstacked.
+        if (event.amount === 0n) {
+            this.logger.warn('Hero STAKE REMOVED!', {
+                tokenId: event.tokenId.toString(),
+            });
+        }
     }
 
     /**
