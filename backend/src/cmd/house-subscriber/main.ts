@@ -99,7 +99,8 @@ async function initialize(): Promise<void> {
     // Create subscriber config
     const subscriberConfig: HouseSubscriberConfig = {
         houseContractAddress: config.subscriber.houseContractAddress,
-        contractAddress: config.subscriber.houseContractAddress,
+        houseTokenContractAddress: config.subscriber.houseTokenContractAddress,
+        contractAddress: [config.subscriber.houseContractAddress, config.subscriber.houseTokenContractAddress],
         startingBlockNumber: config.subscriber.houseStartingBlockNumber,
         soldNotifyUrl: config.subscriber.houseSoldNotifyUrl,
         bcoinContractAddress: config.subscriber.bcoinContractAddress,

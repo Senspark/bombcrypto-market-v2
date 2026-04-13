@@ -14,6 +14,7 @@ import {
     CreateOrderEvent,
     EventParser,
     SoldEvent,
+    TransferEvent,
 } from '@/infrastructure/blockchain/events/parser';
 import {HouseTxReq} from '@/domain/models/house';
 import {TX_STATUS} from '@/domain/models/hero';
@@ -24,6 +25,7 @@ import {Logger} from '@/utils/logger';
  */
 export interface HouseSubscriberConfig extends SubscriberConfig {
     houseContractAddress: string;
+    houseTokenContractAddress: string;
 }
 
 /**
@@ -44,7 +46,7 @@ export class HouseSubscriber extends BaseSubscriber {
     ) {
         super(client, blockRepo, logger, {
             ...config,
-            contractAddress: config.houseContractAddress,
+            contractAddress: [config.houseContractAddress, config.houseTokenContractAddress],
         });
         this.houseRepo = houseRepo;
         this.houseMarket = houseMarket;
@@ -101,6 +103,9 @@ export class HouseSubscriber extends BaseSubscriber {
                 break;
             case 'CancelOrder':
                 await this.handleCancelOrder(event);
+                break;
+            case 'Transfer':
+                await this.handleTransfer(event);
                 break;
         }
     }
@@ -182,14 +187,35 @@ export class HouseSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Handle CancelOrder event - delete listing
+     * Handle CancelOrder event
      */
     private async handleCancelOrder(event: CancelOrderEvent): Promise<void> {
-        await this.houseRepo.deleteAllCreateOrders(Number(event.tokenId));
-
-        this.logger.info('HouseSubscriber processed CancelOrder', {
+        this.logger.info('Processing CancelOrder event', {
             tokenId: event.tokenId.toString(),
+            transactionHash: event.transactionHash,
         });
+
+        // Deactivate listing
+        await this.houseRepo.deleteAllCreateOrders(Number(event.tokenId));
+    }
+
+    /**
+     * Handle Transfer event (ERC721)
+     * Automatically invalidates listings if the House is moved outside the marketplace
+     */
+    private async handleTransfer(event: TransferEvent): Promise<void> {
+        // If it's a mint (from zero address) or a transfer TO the market, skip
+        if (event.from === '0x0000000000000000000000000000000000000000') {
+            return;
+        }
+
+        this.logger.info('Processing Transfer event for potential ghost House listing cleanup', {
+            tokenId: event.tokenId.toString(),
+            from: event.from,
+            to: event.to,
+        });
+
+        await this.houseRepo.deleteAllCreateOrders(Number(event.tokenId));
     }
 
     /**

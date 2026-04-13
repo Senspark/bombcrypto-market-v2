@@ -21,7 +21,7 @@ const PROCESS_CHUNK_DELAY_MS = 5000;
  * Subscriber configuration
  */
 export interface SubscriberConfig {
-    contractAddress: string;
+    contractAddress: string | string[];
     startingBlockNumber: number;
     soldNotifyUrl?: string;
     bcoinContractAddress: string;
@@ -105,7 +105,6 @@ export abstract class BaseSubscriber {
      * Process a block range - fetch logs and process events
      */
     protected async processBlockRange(fromBlock: number, toBlock: number): Promise<void> {
-        // Fetch logs using BlockChainCenterApi
         const logs = await this.client.filterLogs(
             this.config.contractAddress,
             [this.getEventTopics()],

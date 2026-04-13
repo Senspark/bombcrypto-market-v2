@@ -47,6 +47,8 @@ export function loadConfig(): Config {
             network,
             heroContractAddress: getEnv('SUBSCRIBER_HERO_CONTRACT_ADDRESS', ''),
             houseContractAddress: getEnv('SUBSCRIBER_HOUSE_CONTRACT_ADDRESS', ''),
+            heroTokenContractAddress: getEnv('SUBSCRIBER_HERO_TOKEN_CONTRACT_ADDRESS', getEnv('SERVER_BHERO_CONTRACT_ADDRESS', '')),
+            houseTokenContractAddress: getEnv('SUBSCRIBER_HOUSE_TOKEN_CONTRACT_ADDRESS', getEnv('SERVER_BHOUSE_CONTRACT_ADDRESS', '')),
             heroSoldNotifyUrl: getEnv('SUBSCRIBER_HERO_SOLD_NOTIFY_URL', ''),
             houseSoldNotifyUrl: getEnv('SUBSCRIBER_HOUSE_SOLD_NOTIFY_URL', ''),
             blockRetryTimeout: getEnvNumber('SUBSCRIBER_BLOCK_RETRY_TIMEOUT', 10000),

@@ -99,7 +99,8 @@ async function initialize(): Promise<void> {
     // Create subscriber config
     const subscriberConfig: HeroSubscriberConfig = {
         heroContractAddress: config.subscriber.heroContractAddress,
-        contractAddress: config.subscriber.heroContractAddress,
+        heroTokenContractAddress: config.subscriber.heroTokenContractAddress,
+        contractAddress: [config.subscriber.heroContractAddress, config.subscriber.heroTokenContractAddress],
         startingBlockNumber: config.subscriber.heroStartingBlockNumber,
         soldNotifyUrl: config.subscriber.heroSoldNotifyUrl,
         bcoinContractAddress: config.subscriber.bcoinContractAddress,

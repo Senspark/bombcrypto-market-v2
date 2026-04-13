@@ -14,6 +14,7 @@ export const EVENT_TOPICS = {
     CREATE_ORDER: keccak256('CreateOrder(uint256,uint256,uint256,address)'),
     SOLD: keccak256('Sold(uint256,uint256,uint256,address,address)'),
     CANCEL_ORDER: keccak256('CancelOrder(uint256)'),
+    TRANSFER: keccak256('Transfer(address,address,uint256)'),
 } as const;
 
 /**
@@ -23,12 +24,13 @@ export const ALL_MARKET_TOPICS = [
     EVENT_TOPICS.CREATE_ORDER,
     EVENT_TOPICS.SOLD,
     EVENT_TOPICS.CANCEL_ORDER,
+    EVENT_TOPICS.TRANSFER,
 ];
 
 /**
  * Event types
  */
-export type MarketEventType = 'CreateOrder' | 'Sold' | 'CancelOrder';
+export type MarketEventType = 'CreateOrder' | 'Sold' | 'CancelOrder' | 'Transfer';
 
 /**
  * CreateOrder event data
@@ -71,9 +73,22 @@ export interface CancelOrderEvent {
 }
 
 /**
+ * Transfer event data (ERC721)
+ */
+export interface TransferEvent {
+    type: 'Transfer';
+    from: string;
+    to: string;
+    tokenId: bigint;
+    transactionHash: string;
+    blockNumber: number;
+    logIndex: number;
+}
+
+/**
  * Union type for all market events
  */
-export type MarketEvent = CreateOrderEvent | SoldEvent | CancelOrderEvent;
+export type MarketEvent = CreateOrderEvent | SoldEvent | CancelOrderEvent | TransferEvent;
 
 /**
  * EventParser for parsing market contract events
@@ -138,6 +153,8 @@ export class EventParser {
                 return 'Sold';
             case EVENT_TOPICS.CANCEL_ORDER:
                 return 'CancelOrder';
+            case EVENT_TOPICS.TRANSFER:
+                return 'Transfer';
             default:
                 return null;
         }
@@ -200,6 +217,15 @@ export class EventParser {
                 return {
                     type: 'CancelOrder',
                     tokenId: parsed.args[0],
+                    ...baseData,
+                };
+
+            case 'Transfer':
+                return {
+                    type: 'Transfer',
+                    from: parsed.args[0],
+                    to: parsed.args[1],
+                    tokenId: parsed.args[2],
                     ...baseData,
                 };
 

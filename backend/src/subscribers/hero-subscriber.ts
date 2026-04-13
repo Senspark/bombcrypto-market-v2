@@ -14,6 +14,7 @@ import {
     CreateOrderEvent,
     EventParser,
     SoldEvent,
+    TransferEvent,
 } from '@/infrastructure/blockchain/events/parser';
 import {HeroTxReq, TX_STATUS} from '@/domain/models/hero';
 import {Logger} from '@/utils/logger';
@@ -23,6 +24,7 @@ import {Logger} from '@/utils/logger';
  */
 export interface HeroSubscriberConfig extends SubscriberConfig {
     heroContractAddress: string;
+    heroTokenContractAddress: string;
 }
 
 /**
@@ -43,7 +45,7 @@ export class HeroSubscriber extends BaseSubscriber {
     ) {
         super(client, blockRepo, logger, {
             ...config,
-            contractAddress: config.heroContractAddress,
+            contractAddress: [config.heroContractAddress, config.heroTokenContractAddress],
         });
         this.heroRepo = heroRepo;
         this.heroMarket = heroMarket;
@@ -100,6 +102,9 @@ export class HeroSubscriber extends BaseSubscriber {
                 break;
             case 'CancelOrder':
                 await this.handleCancelOrder(event);
+                break;
+            case 'Transfer':
+                await this.handleTransfer(event);
                 break;
         }
     }
@@ -181,14 +186,38 @@ export class HeroSubscriber extends BaseSubscriber {
     }
 
     /**
-     * Handle CancelOrder event - delete listing
+     * Handle CancelOrder event
      */
     private async handleCancelOrder(event: CancelOrderEvent): Promise<void> {
-        await this.heroRepo.deleteAllCreateOrders(Number(event.tokenId));
-
-        this.logger.info('HeroSubscriber processed CancelOrder', {
+        this.logger.info('Processing CancelOrder event', {
             tokenId: event.tokenId.toString(),
+            transactionHash: event.transactionHash,
         });
+
+        // Deactivate listing
+        await this.heroRepo.deleteAllCreateOrders(Number(event.tokenId));
+    }
+
+    /**
+     * Handle Transfer event (ERC721)
+     * Automatically invalidates listings if the NFT is moved outside the marketplace
+     */
+    private async handleTransfer(event: TransferEvent): Promise<void> {
+        // If it's a mint (from zero address) or a transfer TO the market (not possible here since market doesn't escrow), skip
+        if (event.from === '0x0000000000000000000000000000000000000000') {
+            return;
+        }
+
+        // We use a simple strategy: any transfer of a listed token should invalidate the listing.
+        // If it's a 'Sold' event, the Sold handler will also call this, which is fine (idempotent).
+        // If it's a manual transfer, this fixes the "ghost" listing.
+        this.logger.info('Processing Transfer event for potential ghost listing cleanup', {
+            tokenId: event.tokenId.toString(),
+            from: event.from,
+            to: event.to,
+        });
+
+        await this.heroRepo.deleteAllCreateOrders(Number(event.tokenId));
     }
 
     /**
