@@ -75,7 +75,7 @@ export class BlockChainCenterApi {
      * POST /getLogs
      */
     async filterLogs(
-        address: string,
+        address: string | string[],
         topics: (string | string[] | null)[],
         fromBlock: number,
         toBlock: number,

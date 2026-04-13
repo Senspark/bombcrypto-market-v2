@@ -20,6 +20,8 @@ export const subscriberConfigSchema = z.object({
     network: z.string().default('bsc'),
     heroContractAddress: z.string().default(''),
     houseContractAddress: z.string().default(''),
+    heroTokenContractAddress: z.string().default(''),
+    houseTokenContractAddress: z.string().default(''),
     heroSoldNotifyUrl: z.string().default(''),
     houseSoldNotifyUrl: z.string().default(''),
     blockRetryTimeout: z.number().default(10000), // milliseconds

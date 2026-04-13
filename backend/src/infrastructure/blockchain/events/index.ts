@@ -16,4 +16,5 @@ export type {
     CreateOrderEvent,
     SoldEvent,
     CancelOrderEvent,
+    TransferEvent,
 } from './parser';
