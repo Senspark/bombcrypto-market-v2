@@ -1,0 +1,35 @@
+/* Saiyan Aura and Flaming Text Animations */
+
+@keyframes saiyan-aura {
+  0% { box-shadow: 0 0 10px #7000ff, 0 0 20px #7000ff; }
+  50% { box-shadow: 0 0 30px #00e5ff, 0 0 60px #00e5ff; }
+  100% { box-shadow: 0 0 10px #7000ff, 0 0 20px #7000ff; }
+}
+
+@keyframes flaming-text {
+  0% { text-shadow: 0 0 10px #ff4e00, 0 -2px 15px #ff4e00, 0 -5px 20px #ff0000; color: #fff; }
+  50% { text-shadow: 0 0 20px #ff8c00, 0 -5px 25px #ff8c00, 0 -10px 30px #ff4e00; color: #ffe400; }
+  100% { text-shadow: 0 0 10px #ff4e00, 0 -2px 15px #ff4e00, 0 -5px 20px #ff0000; color: #fff; }
+}
+
+.godlike-aura {
+  animation: saiyan-aura 2s infinite alternate ease-in-out;
+  border-radius: 50%;
+  display: inline-block;
+  padding: 5px;
+}
+
+.flaming-name {
+  animation: flaming-text 1.5s infinite ease-in-out;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.godlike-badge {
+    background: linear-gradient(0deg, #ff4e00 0%, #ff8c00 50%, #ffe400 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    margin-left: 5px;
+}

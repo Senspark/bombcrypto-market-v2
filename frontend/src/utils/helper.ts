@@ -169,7 +169,12 @@ export const levelToPower: Record<number, number> = {
   2: 1,
   3: 2,
   4: 3,
-  5: 5,
+  5: 4,
+  6: 6,
+  7: 8,
+  8: 10,
+  9: 12,
+  10: 15,
 };
 
 export const debounce = <T extends (...args: any[]) => any>(

@@ -19,6 +19,7 @@ import {
 } from "../../components/Service/web3";
 import _ from "lodash";
 import { ShieldOutput } from "../../types/hero";
+import "../../styles/animations.css";
 
 interface RouteParams {
   id: string;
@@ -129,12 +130,16 @@ const MarketHeroById: React.FC = () => {
                 </div>
 
                 <div className="icon-hero">
-                  <div className="level">Level {data.level}</div>
-                  <HeroIcon
-                    data={data as any}
-                    heroType={isHeroS ? HeroType.s : (data.shieldData?.heroType as any)}
-                    iconStyle={{ width: "1.875rem", height: "3rem" }}
-                  />
+                  <div className={`level ${data.level >= 6 ? "flaming-name" : ""}`}>
+                    Level {data.level} {data.level >= 6 && <span className="godlike-badge">GODLIKE</span>}
+                  </div>
+                  <div className={data.level >= 6 ? "godlike-aura" : ""}>
+                    <HeroIcon
+                      data={data as any}
+                      heroType={isHeroS ? HeroType.s : (data.shieldData?.heroType as any)}
+                      iconStyle={{ width: "1.875rem", height: "3rem" }}
+                    />
+                  </div>
                 </div>
                 <div className="footer action">
                   <img
