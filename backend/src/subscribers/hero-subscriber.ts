@@ -62,41 +62,71 @@ export class HeroSubscriber extends BaseSubscriber {
      * Process hero market events
      */
     protected async processEvents(logs: Log[]): Promise<void> {
+        if (logs.length === 0) return;
+
+        // BATCH OPTIMIZATION: Resolve all timestamps and pay tokens in one go
+        const blockNumbers = Array.from(new Set(logs.map(log => log.blockNumber)));
+        const tokenIds = Array.from(new Set(logs.map(log => {
+            const event = this.eventParser.parseLog(log, 'hero');
+            return event && 'tokenId' in event ? event.tokenId : null;
+        }).filter((id): id is bigint => id !== null)));
+
+        // Cache for batch results
+        const timestampMap = new Map<number, number>();
+        const payTokenMap = new Map<string, string>();
+
+        // 1. Fetch all timestamps
+        await Promise.all(blockNumbers.map(async (bn) => {
+            const ts = await this.client.getBlockTimestamp(bn);
+            if (ts !== null) timestampMap.set(bn, ts);
+        }));
+
+        // 2. Fetch all pay tokens via multicall if needed, or using existing service
+        if (tokenIds.length > 0) {
+            const payTokens = await this.heroMarket.getTokenPayList(tokenIds);
+            tokenIds.forEach((id, index) => {
+                if (payTokens[index]) {
+                    payTokenMap.set(id.toString(), this.getPayTokenName(payTokens[index]));
+                }
+            });
+        }
+
         for (const log of logs) {
             if (this.shouldShutdown()) break;
 
             try {
-                await this.processEvent(log);
+                const event = this.eventParser.parseLog(log, 'hero');
+                if (!event) continue;
+
+                const timestamp = timestampMap.get(log.blockNumber);
+                const payToken = ('tokenId' in event) ? (payTokenMap.get(event.tokenId.toString()) || 'BCOIN') : 'BCOIN';
+
+                if (timestamp === undefined) {
+                    throw new Error(`Timestamp for block ${log.blockNumber} not pre-fetched`);
+                }
+
+                await this.processParsedEvent(event, log, timestamp, payToken);
             } catch (err) {
                 this.logger.error('HeroSubscriber failed to process event', {
                     txHash: log.transactionHash,
                     logIndex: log.index,
                     error: this.getErrorMessage(err),
                 });
-                throw err; // Re-throw to mark block as failed
+                throw err;
             }
         }
     }
 
     /**
-     * Process a single event
+     * Process a single event (Internal version with pre-fetched data)
      */
-    private async processEvent(log: Log): Promise<void> {
-        const event = this.eventParser.parseLog(log, 'hero');
-        if (!event) {
-            this.logger.warn('HeroSubscriber unknown event', {
-                txHash: log.transactionHash,
-                topic: log.topics[0],
-            });
-            return;
-        }
-
+    private async processParsedEvent(event: any, log: Log, timestamp: number, payToken: string): Promise<void> {
         switch (event.type) {
             case 'CreateOrder':
-                await this.handleCreateOrder(event);
+                await this.handleCreateOrderWithData(event, timestamp, payToken);
                 break;
             case 'Sold':
-                await this.handleSold(event);
+                await this.handleSoldWithData(event, timestamp, payToken);
                 break;
             case 'CancelOrder':
                 await this.handleCancelOrder(event);
@@ -107,15 +137,7 @@ export class HeroSubscriber extends BaseSubscriber {
     /**
      * Handle CreateOrder event - create listing
      */
-    private async handleCreateOrder(event: CreateOrderEvent): Promise<void> {
-        const timestamp = await this.client.getBlockTimestamp(event.blockNumber);
-        if (timestamp === null) {
-            throw new Error(`Block ${event.blockNumber} not found`);
-        }
-
-        // Get payment token
-        const payToken = await this.getPayToken(event.tokenId);
-
+    private async handleCreateOrderWithData(event: CreateOrderEvent, timestamp: number, payToken: string): Promise<void> {
         const req: HeroTxReq = {
             txHash: event.transactionHash,
             blockNumber: event.blockNumber,
@@ -141,15 +163,7 @@ export class HeroSubscriber extends BaseSubscriber {
     /**
      * Handle Sold event - mark as sold
      */
-    private async handleSold(event: SoldEvent): Promise<void> {
-        const timestamp = await this.client.getBlockTimestamp(event.blockNumber);
-        if (timestamp === null) {
-            throw new Error(`Block ${event.blockNumber} not found`);
-        }
-
-        // Get payment token
-        const payToken = await this.getPayToken(event.tokenId);
-
+    private async handleSoldWithData(event: SoldEvent, timestamp: number, payToken: string): Promise<void> {
         const req: HeroTxReq = {
             txHash: event.transactionHash,
             blockNumber: event.blockNumber,
