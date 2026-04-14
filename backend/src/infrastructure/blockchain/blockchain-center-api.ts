@@ -143,6 +143,21 @@ export class BlockChainCenterApi {
     }
 
     /**
+     * Execute a multicall (batch requests)
+     * POST /multicall
+     */
+    async multicall<T>(
+        calls: {contractAddress: string; abi: unknown[]; methodName: string; args: unknown[]}[]
+    ): Promise<{success: boolean; result: T; error?: string}[]> {
+        const response = await this.postWithRetry<{success: boolean; result: T; error?: string}[]>('/multicall', {
+            network: this.network,
+            calls,
+        });
+
+        return response;
+    }
+
+    /**
      * Stop the client (no-op for HTTP client, included for interface compatibility)
      */
     stop(): void {
