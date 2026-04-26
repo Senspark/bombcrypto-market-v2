@@ -43,7 +43,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
   cancel,
 }) => {
   const { isShowing, toggle } = useModal();
-  const [status, setStatus] = useState("sell");
+  const [status, setStatus] = useState<any>("sell");
   const [message, setMessage] = useState("");
   const { cancelOrderBhouse, setLoading } = useContract();
   const { isSellable, minPrice } = Bhouse[data.rarity];
@@ -56,8 +56,15 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
     }
   };
 
-  const updateStatus = (newStatus: string) => {
-    setStatus(newStatus);
+  const updateStatus = (newStatus: string | { status: string; error?: string }) => {
+    if (typeof newStatus === "object") {
+      setStatus(newStatus.status);
+      if (newStatus.error) {
+        setMessage(newStatus.error);
+      }
+    } else {
+      setStatus(newStatus);
+    }
     toggle();
   };
 
@@ -179,6 +186,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
           reload={clear.current}
           bType="Bhouse"
           isShowing={isShowing}
+          message={message}
         />
       )}
       {status === "cancel" && (

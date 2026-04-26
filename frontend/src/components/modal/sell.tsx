@@ -62,15 +62,15 @@ const SellModal: React.FC<SellModalProps> = ({ data, hide, minPrice, setStatus, 
     hide();
 
     if (name === "BHouse") {
-      const status = await createOrderBhouse(id, String(price!), isValueSelect);
+      const result = await createOrderBhouse(id, String(price!), isValueSelect);
 
       if (mountedRef.current) {
-        setStatus(status);
+        setStatus(result);
       }
     } else {
-      const status = await createOrder(id, String(price!), isValueSelect);
+      const result = await createOrder(id, String(price!), isValueSelect);
       if (mountedRef.current) {
-        setStatus(status);
+        setStatus(result);
       }
     }
   };

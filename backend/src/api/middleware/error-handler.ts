@@ -30,6 +30,9 @@ export const HttpErrors = {
     internalError: (message: string = 'something went wrong') =>
         new HttpError(500, message),
 
+    tooManyRequests: (message: string = 'too many requests') =>
+        new HttpError(429, message),
+
     tokenOwnerExists: (tokenId: string, owner: string) =>
         new HttpError(400, `owner of token ${tokenId} exists: ${owner}`, 4001),
 };

@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import {IWalletHistoryRepository} from '@/domain/interfaces/repository';
+import {IWalletHistoryRepository, IHeroTransactionRepository, IHouseTransactionRepository} from '@/domain/interfaces/repository';
 import {createEmptyWalletTxFilterContext, UserDetailsReq, UserRepr} from '@/domain/models/user';
 import {parseHeroDetails, parseHouseDetails} from '@/utils/details-parser';
 import {generateCacheKeyFromData, ICache} from '@/infrastructure/cache/memory-cache';
@@ -12,6 +12,8 @@ import {asyncHandler, HttpErrors} from '../middleware/error-handler';
 // User handler dependencies
 export interface UserHandlerDeps {
     walletHistoryRepo: IWalletHistoryRepository;
+    heroTxRepo: IHeroTransactionRepository;
+    houseTxRepo: IHouseTransactionRepository;
     cache: ICache;
     redis: IRedisClient | null;
     network: string;

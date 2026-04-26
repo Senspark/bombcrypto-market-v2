@@ -28,6 +28,8 @@ export interface IRedisClient {
     set(key: string, value: string, ttlSeconds?: number): Promise<void>;
 
     del(key: string): Promise<number>;
+    
+    ttl(key: string): Promise<number>;
 
     // Check connection
     ping(): Promise<string>;
@@ -115,6 +117,10 @@ export class RedisClient implements IRedisClient {
         return this.client.del(key);
     }
 
+    async ttl(key: string): Promise<number> {
+        return this.client.ttl(key);
+    }
+
     async ping(): Promise<string> {
         return this.client.ping();
     }
@@ -198,6 +204,17 @@ export class SearchIdTracker {
             // Log but don't throw - this is a non-critical operation
             console.error('Failed to track house search IDs:', err);
         }
+    }
+
+    // Aliases for track methods
+    async addHeroIds(...ids: (string | number)[]): Promise<void> {
+        if (!this.redis || ids.length === 0) return;
+        await this.redis.addToSet(this.heroKey, ...ids);
+    }
+
+    async addHouseIds(...ids: (string | number)[]): Promise<void> {
+        if (!this.redis || ids.length === 0) return;
+        await this.redis.addToSet(this.houseKey, ...ids);
     }
 
     // Check if hero ID has been searched

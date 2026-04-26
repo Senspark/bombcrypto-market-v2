@@ -24,17 +24,17 @@ const CheckBox = styled.div`
     cursor: pointer;
     img {
       filter: grayscale(100%);
+      transition: filter 0.3s ease;
     }
   }
 
   input:checked + label {
     .content img {
-      // filter: grayscale(0%);
+      filter: grayscale(0%);
     }
   }
 
   .tooltip {
-    // position: relative;
     display: inline-block;
     cursor: pointer;
   }
@@ -47,10 +47,18 @@ interface AbilityProps {
 }
 
 const Ability: React.FC<AbilityProps> = ({ init, name, onChange = () => {} }) => {
-  const convertInit = Array.isArray(init) ? init : init ? [init] : [];
+  const convertInit = React.useMemo(() => 
+    Array.isArray(init) ? init : init ? [init] : []
+  , [init]);
+  
   const [value, setValue] = useState<number[]>(
     convertInit.map((element) => parseInt(String(element)))
   );
+
+  // Sync state with props for consistency
+  React.useEffect(() => {
+    setValue(convertInit.map((element) => parseInt(String(element))));
+  }, [convertInit]);
 
   const changeCheckBox = (event: ChangeEvent<HTMLInputElement>) => {
     const option = event.target.value;

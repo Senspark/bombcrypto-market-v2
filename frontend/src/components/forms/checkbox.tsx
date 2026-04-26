@@ -68,15 +68,23 @@ interface CheckboxProps {
 }
 
 const Checkbox: React.FC<CheckboxProps> = ({ init, options, name, onChange = () => {} }) => {
-  const convertInit = Array.isArray(init) ? init : init ? [init] : [];
+  const convertInit = React.useMemo(() => 
+    Array.isArray(init) ? init : init ? [init] : []
+  , [init]);
+
   const [value, setValue] = useState<(string | number)[]>(
     convertInit.map((element) => parseInt(String(element)))
   );
 
+  // Sync state with props for consistency
+  React.useEffect(() => {
+    setValue(convertInit.map((element) => parseInt(String(element))));
+  }, [convertInit]);
+
   const changeCheckBox = (event: ChangeEvent<HTMLInputElement>) => {
     const option = event.target.value;
     const temp = [...value];
-    const index = value.findIndex((element) => element === option);
+    const index = value.findIndex((element) => String(element) === String(option));
     if (index === -1) {
       temp.push(option);
     } else {
