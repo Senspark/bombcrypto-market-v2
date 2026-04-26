@@ -196,10 +196,17 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
 
   const buy = async () => {
     try {
-      await buyHero(id, String(price));
-      await updateBcoin();
-      setStatus("success");
+      const result = await buyHero(id, String(price));
+      if (result.status === "success") {
+        await updateBcoin();
+        setStatus("success");
+      } else if (result.status === "rejected") {
+        setStatus("none"); // Reset loading/status if user just rejected
+      } else {
+        setStatus("failed");
+      }
     } catch (error) {
+      console.error("Buy component error:", error);
       setStatus("failed");
     }
     toggle();

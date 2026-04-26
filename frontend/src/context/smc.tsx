@@ -20,9 +20,9 @@ export interface Web3ContextValue {
   getBHeroDetail: () => Promise<any>;
   isApprovedForAll: () => Promise<boolean | null>;
   setApprovalForAll: () => Promise<void>;
-  createOrder: (id: number | string, price: string, tokenAddress: string) => Promise<string>;
-  cancelOrder: (id: number | string) => Promise<void>;
-  buyOrder: (id: number | string, price: string) => Promise<void>;
+  createOrder: (id: number | string, price: string, tokenAddress: string) => Promise<{ status: string; error?: string }>;
+  cancelOrder: (id: number | string) => Promise<{ status: string; error?: string }>;
+  buyOrder: (id: number | string, price: string) => Promise<{ status: string; error?: string }>;
   getOrder: (id: number | string) => Promise<any>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   BcoinAllowance: () => Promise<string>;
@@ -32,9 +32,9 @@ export interface Web3ContextValue {
   updateBcoin: () => Promise<any>;
   wasHeroBurn: (id: number | string) => Promise<boolean>;
 
-  createOrderBhouse: (id: number | string, price: string, tokenAddress: string) => Promise<string>;
-  buyOrderBhouse: (id: number | string, price: string) => Promise<ContractTransactionReceipt | null>;
-  cancelOrderBhouse: (id: number | string) => Promise<void>;
+  createOrderBhouse: (id: number | string, price: string, tokenAddress: string) => Promise<{ status: string; error?: string }>;
+  buyOrderBhouse: (id: number | string, price: string) => Promise<{ status: string; error?: string }>;
+  cancelOrderBhouse: (id: number | string) => Promise<{ status: string; error?: string }>;
   isApprovedForAllBhouse: () => Promise<boolean | null>;
   setApprovalForAllBhouse: () => Promise<void>;
   getBHouseDetail: () => Promise<any>;
@@ -211,29 +211,53 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     return await InstanceProvider?.getBlock("latest") ?? null;
   };
 
-  const createOrder = async (id: number | string, price: string, tokenAddress: string): Promise<string> => {
+  const createOrder = async (id: number | string, price: string, tokenAddress: string): Promise<{ status: string; error?: string }> => {
     setLoading(true);
     const result = parseEther(price);
     try {
       const tx = await InstanceHeroMarket?.createOrder(id, result.toString(), tokenAddress);
       await tx?.wait();
       setLoading(false);
-      return "success";
-    } catch (error) {
+      return { status: "success" };
+    } catch (error: any) {
+      console.error("createOrder error:", error);
       setLoading(false);
-      return "fail";
+      let errorMessage = "Listing failed. Please try again.";
+      if (error?.code === "ACTION_REJECTED") {
+        errorMessage = "User rejected the transaction.";
+      } else if (error?.message?.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for gas fees.";
+      } else if (error?.message?.includes("execution reverted")) {
+        errorMessage = "Transaction reverted. The character might already be listed or not in your wallet.";
+      }
+      return { status: "fail", error: errorMessage };
     }
   };
 
-  const buyOrder = async (id: number | string, price: string): Promise<void> => {
-    const price_BN = BigInt(price).toString();
-    const tx = await InstanceHeroMarket?.buy(id, price_BN);
-    await tx?.wait();
+  const buyOrder = async (
+    id: number | string,
+    price: string
+  ): Promise<{ status: string; error?: string }> => {
+    return await buyHero(id, price);
   };
 
-  const cancelOrder = async (id: number | string): Promise<void> => {
-    const tx = await InstanceHeroMarket?.cancelOrder(id);
-    await tx?.wait();
+  const cancelOrder = async (
+    id: number | string
+  ): Promise<{ status: string; error?: string }> => {
+    try {
+      const tx = await InstanceHeroMarket?.cancelOrder(id);
+      await tx?.wait();
+      return { status: "success" };
+    } catch (error: any) {
+      console.error("cancelOrder error:", error);
+      let errorMsg = "Transaction failed";
+      if (error?.reason) errorMsg = error.reason;
+      else if (error?.data?.message) errorMsg = error.data.message;
+      else if (error?.message) errorMsg = error.message;
+
+      if (errorMsg.includes("user rejected")) return { status: "rejected", error: "User rejected transaction" };
+      return { status: "error", error: errorMsg };
+    }
   };
 
   const getOrder = async (id: number | string): Promise<any> => {
@@ -262,11 +286,25 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     await tx?.wait();
   };
 
-  const buyHero = async (id: number | string, price: string): Promise<ContractTransactionReceipt | null> => {
-    const price_BN = BigInt(price).toString();
-    const tx = await InstanceHeroMarket?.buy(id, price_BN);
-    const result = await tx?.wait();
-    return result ?? null;
+  const buyHero = async (
+    id: number | string,
+    price: string
+  ): Promise<{ status: string; error?: string }> => {
+    try {
+      const price_BN = BigInt(price).toString();
+      const tx = await InstanceHeroMarket?.buy(id, price_BN);
+      await tx?.wait();
+      return { status: "success" };
+    } catch (error: any) {
+      console.error("buyHero error:", error);
+      let errorMsg = "Transaction failed";
+      if (error?.reason) errorMsg = error.reason;
+      else if (error?.data?.message) errorMsg = error.data.message;
+      else if (error?.message) errorMsg = error.message;
+
+      if (errorMsg.includes("user rejected")) return { status: "rejected", error: "User rejected transaction" };
+      return { status: "error", error: errorMsg };
+    }
   };
 
   const getBHeroDetail = async (): Promise<any> => {
@@ -324,31 +362,65 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     return result?.toString() ?? "0";
   };
 
-  const createOrderBhouse = async (id: number | string, price: string, tokenAddress: string): Promise<string> => {
+  const createOrderBhouse = async (id: number | string, price: string, tokenAddress: string): Promise<{ status: string; error?: string }> => {
     setLoading(true);
     const result = parseEther(price);
     try {
       const tx = await InstancenHouseMarket?.createOrder(id, result.toString(), tokenAddress);
       await tx?.wait();
       setLoading(false);
-      return "success";
-    } catch (error) {
-      console.log(error);
+      return { status: "success" };
+    } catch (error: any) {
+      console.error("createOrderBhouse error:", error);
       setLoading(false);
-      return "fail";
+      let errorMessage = "Listing failed. Please try again.";
+      if (error?.code === "ACTION_REJECTED") {
+        errorMessage = "User rejected the transaction.";
+      } else if (error?.message?.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds for gas fees.";
+      }
+      return { status: "fail", error: errorMessage };
     }
   };
 
-  const buyOrderBhouse = async (id: number | string, price: string): Promise<ContractTransactionReceipt | null> => {
-    const price_BN = BigInt(price).toString();
-    const tx = await InstancenHouseMarket?.buy(id, price_BN);
-    const result = await tx?.wait();
-    return result ?? null;
+  const buyOrderBhouse = async (
+    id: number | string,
+    price: string
+  ): Promise<{ status: string; error?: string }> => {
+    try {
+      const price_BN = BigInt(price).toString();
+      const tx = await InstancenHouseMarket?.buy(id, price_BN);
+      await tx?.wait();
+      return { status: "success" };
+    } catch (error: any) {
+      console.error("buyOrderBhouse error:", error);
+      let errorMsg = "Transaction failed";
+      if (error?.reason) errorMsg = error.reason;
+      else if (error?.data?.message) errorMsg = error.data.message;
+      else if (error?.message) errorMsg = error.message;
+
+      if (errorMsg.includes("user rejected")) return { status: "rejected", error: "User rejected transaction" };
+      return { status: "error", error: errorMsg };
+    }
   };
 
-  const cancelOrderBhouse = async (id: number | string): Promise<void> => {
-    const tx = await InstancenHouseMarket?.cancelOrder(id);
-    await tx?.wait();
+  const cancelOrderBhouse = async (
+    id: number | string
+  ): Promise<{ status: string; error?: string }> => {
+    try {
+      const tx = await InstancenHouseMarket?.cancelOrder(id);
+      await tx?.wait();
+      return { status: "success" };
+    } catch (error: any) {
+      console.error("cancelOrderBhouse error:", error);
+      let errorMsg = "Transaction failed";
+      if (error?.reason) errorMsg = error.reason;
+      else if (error?.data?.message) errorMsg = error.data.message;
+      else if (error?.message) errorMsg = error.message;
+
+      if (errorMsg.includes("user rejected")) return { status: "rejected", error: "User rejected transaction" };
+      return { status: "error", error: errorMsg };
+    }
   };
 
   const isApprovedForAllBhouse = async (): Promise<boolean | null> => {

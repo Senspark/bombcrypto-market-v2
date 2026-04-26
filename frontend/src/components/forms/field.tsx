@@ -60,7 +60,7 @@ const Field: React.FC<FieldProps> = ({ init = "", label, name, onChange = () => 
       <label htmlFor="">{label}</label>
       <div>
         <span>{">="}</span>
-        <input type="text" defaultValue={init} onChange={changeInput} />
+        <input type="text" value={init} onChange={changeInput} />
       </div>
     </FormItem>
   );

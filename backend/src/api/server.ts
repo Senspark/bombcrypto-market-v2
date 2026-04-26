@@ -159,6 +159,8 @@ export class ApiServer {
             '/users',
             createUserRoutes({
                 walletHistoryRepo,
+                heroTxRepo,
+                houseTxRepo,
                 cache: cacheSet.getCache,
                 redis: this.deps.redis,
                 network: config.server.network,

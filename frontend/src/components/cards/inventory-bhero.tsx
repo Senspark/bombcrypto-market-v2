@@ -69,7 +69,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
     !_.isEmpty(data?.abilities_hero_s) &&
     !_.includes(data?.abilities_hero_s, 0);
   const { isShowing, toggle } = useModal();
-  const [status, setStatus] = useState("sell");
+  const [status, setStatus] = useState<any>("sell");
   const [message, setMessage] = useState("");
   const { clear } = useAccount();
   const { cancelOrder, setLoading, getOrder, block } = useContract();
@@ -89,8 +89,15 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
     }
   };
 
-  const updateStatus = (newStatus: string) => {
-    setStatus(newStatus);
+  const updateStatus = (newStatus: string | { status: string; error?: string }) => {
+    if (typeof newStatus === "object") {
+      setStatus(newStatus.status);
+      if (newStatus.error) {
+        setMessage(newStatus.error);
+      }
+    } else {
+      setStatus(newStatus);
+    }
     toggle();
   };
 
@@ -316,6 +323,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
           minPrice={minPrice}
           reload={clear.current}
           isShowing={isShowing}
+          message={message}
         />
       )}
       {status === "cancel" && (
