@@ -33,6 +33,7 @@ interface HeroData {
   color: number;
   seller_wallet_address?: string;
   shieldData?: ShieldOutput | null;
+  isShielded?: boolean;
 }
 
 interface DashboardBheroProps {
@@ -58,9 +59,12 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
       <div className="info">
         <div className="level">Level {data.level}</div>
         <Tag>#{data.token_id}</Tag>
-        <Tag className={"uppercase " + mapTag[data.rarity]}>
-          {mapRarity(data.rarity)}{" "}
-        </Tag>
+        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
+          {data.isShielded && <Tag style={{ padding: '0.125rem 0.25rem', background: 'transparent' }}>🛡️</Tag>}
+          <Tag className={"uppercase " + mapTag[data.rarity]}>
+            {mapRarity(data.rarity)}{" "}
+          </Tag>
+        </div>
       </div>
       <div className="info-skill">
         <div className="skill-item">

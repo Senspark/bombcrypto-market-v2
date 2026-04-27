@@ -50,6 +50,7 @@ interface HeroData {
   block_timestamp?: string;
   seller_wallet_address?: string;
   shieldData?: ShieldOutput | null;
+  isShielded?: boolean;
 }
 
 interface InventoryBheroProps {
@@ -72,7 +73,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
   const [status, setStatus] = useState("sell");
   const [message, setMessage] = useState("");
   const { clear } = useAccount();
-  const { cancelOrder, setLoading, getOrder, block } = useContract();
+  const { cancelOrder, setLoading, getOrder, block, isShieldActive, isTokenUnlocked } = useContract();
   const abilities = data.abilities || [];
   const { isSellable, minPrice } = Bhero[data.rarity];
 
@@ -84,6 +85,19 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
 
   const sell = async () => {
     if (isSellable && isThroughThe7DayRule) {
+      setLoading(true);
+      const shieldActive = await isShieldActive();
+      if (shieldActive) {
+        const tokenUnlocked = await isTokenUnlocked(data.token_id || data.id || 0);
+        setLoading(false);
+        if (!tokenUnlocked) {
+          setStatus("error");
+          setMessage("🛡️ NFT is protected! Please open the BombCrypto game and unlock this NFT using your PIN before selling.");
+          toggle();
+          return;
+        }
+      }
+      setLoading(false);
       setStatus("sell");
       toggle();
     }
@@ -152,7 +166,10 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
       <div className="info">
         <div className="level">Level {data.level}</div>
         <Tag>#{cancel ? data.token_id : data.id}</Tag>
-        <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)} </Tag>
+        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
+          {data.isShielded && <Tag style={{ padding: '0.125rem 0.25rem', background: 'transparent' }}>🛡️</Tag>}
+          <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)} </Tag>
+        </div>
       </div>
       <div>
         <div className="flex-skill">

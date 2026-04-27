@@ -47,6 +47,7 @@ export interface HeroRepr {
     abilitiesHeroS: number[];
     nftBlockNumber: number;
     shieldData?: ShieldData | null;
+    isShielded?: boolean;
 }
 
 // Hero transaction request (for database insert)
@@ -90,6 +91,7 @@ export interface HeroTxRepr {
     nftBlockNumber: number;
     updatedAt: Date;
     shieldData?: ShieldData | null;
+    isShielded?: boolean;
 }
 
 // Hero transaction list response (paginated)

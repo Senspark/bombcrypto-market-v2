@@ -12,6 +12,7 @@ interface HeroData {
   isToken?: string;
   skin: number;
   color: number;
+  isShielded?: boolean;
 }
 
 interface BHeroCardProps {
@@ -23,7 +24,10 @@ const BHeroFullWidth: React.FC<BHeroCardProps> = ({ data }) => {
     <Item>
       <div className="header">
         <Tag>#{data.token_id}</Tag>
-        <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)}</Tag>
+        <div style={{ display: 'flex', gap: '0.25rem' }}>
+          {data.isShielded && <Tag style={{ padding: '0.125rem 0.25rem', background: 'transparent' }}>🛡️</Tag>}
+          <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)}</Tag>
+        </div>
       </div>
 
       <HeroIcon data={data} />
