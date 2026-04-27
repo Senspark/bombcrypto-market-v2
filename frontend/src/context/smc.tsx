@@ -32,6 +32,10 @@ export interface Web3ContextValue {
   updateBcoin: () => Promise<any>;
   wasHeroBurn: (id: number | string) => Promise<boolean>;
 
+  // NFT Shield
+  isShieldActive: () => Promise<boolean>;
+  isTokenUnlocked: (id: number | string) => Promise<boolean>;
+
   createOrderBhouse: (id: number | string, price: string, tokenAddress: string) => Promise<string>;
   buyOrderBhouse: (id: number | string, price: string) => Promise<ContractTransactionReceipt | null>;
   cancelOrderBhouse: (id: number | string) => Promise<void>;
@@ -180,6 +184,24 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     } catch (error) {
       console.error(error);
       return false;
+    }
+  };
+
+  const isShieldActive = async (): Promise<boolean> => {
+    try {
+      return await InstanceBhero?.isShieldActive(address) ?? false;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
+
+  const isTokenUnlocked = async (id: number | string): Promise<boolean> => {
+    try {
+      return await InstanceBhero?.isTokenUnlocked(id) ?? true;
+    } catch (error) {
+      console.error(error);
+      return true;
     }
   };
 
@@ -438,6 +460,8 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     address,
     updateBcoin,
     wasHeroBurn,
+    isShieldActive,
+    isTokenUnlocked,
 
     createOrderBhouse,
     buyOrderBhouse,

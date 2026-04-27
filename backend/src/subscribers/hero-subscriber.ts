@@ -116,6 +116,9 @@ export class HeroSubscriber extends BaseSubscriber {
         // Get payment token
         const payToken = await this.getPayToken(event.tokenId);
 
+        // Check shield status (informational for marketplace display)
+        const isShielded = await this.checkShieldStatus(event.seller);
+
         const req: HeroTxReq = {
             txHash: event.transactionHash,
             blockNumber: event.blockNumber,
@@ -135,6 +138,7 @@ export class HeroSubscriber extends BaseSubscriber {
             tokenId: event.tokenId.toString(),
             seller: event.seller,
             price: event.price.toString(),
+            isShielded,
         });
     }
 
@@ -189,6 +193,25 @@ export class HeroSubscriber extends BaseSubscriber {
         this.logger.info('HeroSubscriber processed CancelOrder', {
             tokenId: event.tokenId.toString(),
         });
+    }
+
+    /**
+     * Check if seller has NFT Shield active on-chain
+     * This is informational only — the actual transfer block is enforced by the contract
+     */
+    private async checkShieldStatus(sellerAddress: string): Promise<boolean> {
+        try {
+            const bheroContract = this.heroMarket.getBHeroTokenContract();
+            if (bheroContract && typeof bheroContract.isShieldActive === 'function') {
+                return await bheroContract.isShieldActive(sellerAddress);
+            }
+        } catch (err) {
+            this.logger.warn('HeroSubscriber failed to check shield status', {
+                seller: sellerAddress,
+                error: this.getErrorMessage(err),
+            });
+        }
+        return false;
     }
 
     /**
