@@ -57,7 +57,12 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
   };
 
   const updateStatus = (newStatus: string) => {
-    setStatus(newStatus);
+    if (newStatus !== "success" && newStatus !== "sell" && newStatus !== "cancel" && newStatus !== "error" && newStatus !== "cancel-success" && newStatus !== "block-cancel" && newStatus !== "error-notsell") {
+      setMessage(newStatus);
+      setStatus("fail");
+    } else {
+      setStatus(newStatus);
+    }
     toggle();
   };
 
@@ -179,6 +184,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
           reload={clear.current}
           bType="Bhouse"
           isShowing={isShowing}
+          message={message}
         />
       )}
       {status === "cancel" && (

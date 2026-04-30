@@ -15,9 +15,10 @@ interface SellFailProps {
   bType?: string;
   minPrice?: number;
   isShowing: boolean;
+  message?: string;
 }
 
-const SellFail: React.FC<SellFailProps> = ({ data, hide, reload, bType, isShowing }) => {
+const SellFail: React.FC<SellFailProps> = ({ data, hide, reload, bType, isShowing, message }) => {
   const oke = () => {
     if (reload) reload();
     hide();
@@ -38,7 +39,7 @@ const SellFail: React.FC<SellFailProps> = ({ data, hide, reload, bType, isShowin
       <div className="content">
         <img src="/icons/listing_fail.png" alt="" />
       </div>
-      <div className="des-bottom agency">Your assets listing failed</div>
+      <div className="des-bottom agency">{message || "Your assets listing failed"}</div>
       <div className="block-button">
         <button onClick={oke}>OK</button>
       </div>

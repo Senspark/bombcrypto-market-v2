@@ -219,9 +219,11 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
       await tx?.wait();
       setLoading(false);
       return "success";
-    } catch (error) {
+    } catch (error: any) {
       setLoading(false);
-      return "fail";
+      console.log(error);
+      const reason = error?.reason || error?.data?.message || error?.message || "fail";
+      return reason;
     }
   };
 
@@ -332,10 +334,11 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
       await tx?.wait();
       setLoading(false);
       return "success";
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       setLoading(false);
-      return "fail";
+      const reason = error?.reason || error?.data?.message || error?.message || "fail";
+      return reason;
     }
   };
 
