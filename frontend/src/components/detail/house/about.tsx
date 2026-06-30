@@ -2,6 +2,8 @@ import React from "react";
 import styled from "styled-components";
 import Copy from "../../common/copy";
 import { BHouse } from "../../../types";
+import { useAccount } from "../../../context/account";
+import { withNetworkParam } from "../../../utils/config";
 
 const Box = styled.div`
   width: 100%;
@@ -50,6 +52,7 @@ interface AboutProps {
 
 export const About: React.FC<AboutProps> = ({ data }) => {
   const origin = window.location.origin;
+  const { network } = useAccount();
 
   return (
     <Box>
@@ -60,7 +63,7 @@ export const About: React.FC<AboutProps> = ({ data }) => {
         <h4>PROFILE LINK</h4>
         <div>
           <LinkProfile>
-            <Copy data={origin + `/market/bhouse/${data.token_id}`} />
+            <Copy data={origin + withNetworkParam(`/market/bhouse/${data.token_id}`, network)} />
             <span>{data.token_id}</span>
           </LinkProfile>
         </div>

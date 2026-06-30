@@ -76,7 +76,10 @@ const Checkbox: React.FC<CheckboxProps> = ({ init, options, name, onChange = () 
   const changeCheckBox = (event: ChangeEvent<HTMLInputElement>) => {
     const option = event.target.value;
     const temp = [...value];
-    const index = value.findIndex((element) => element === option);
+    // value may hold numbers (seeded from the URL via parseInt) while `option`
+    // is always a string, so compare with String() on both sides — otherwise
+    // unchecking a URL-seeded box never matches and it can't be removed.
+    const index = value.findIndex((element) => String(element) === String(option));
     if (index === -1) {
       temp.push(option);
     } else {

@@ -27,7 +27,11 @@ const useGetTokenPayList = () => {
     // Call SMC get list address token
     // Push address to res.data.transactions and setState
 
-    if (!listing.data.transactions) return listing.data.transactions as undefined;
+    // No transactions (undefined OR empty array): skip the contract call.
+    // getTokenPayList([]) returns "0x" and ethers throws BAD_DATA, which would
+    // abort the whole loadHero flow and leave the owned-heroes list empty.
+    if (!listing.data.transactions || listing.data.transactions.length === 0)
+      return listing.data.transactions as undefined;
     const listTokenId: number[] = [];
     listing.data.transactions.map((el) => {
       listTokenId.push(el.token_id);
