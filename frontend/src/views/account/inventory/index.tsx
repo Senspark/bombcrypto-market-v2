@@ -128,7 +128,7 @@ const Element = styled(NavLink)`
   opacity: 0.3;
   cursor: pointer;
   transition: opacity 0.3s ease-in-out;
-  font-family: "agency-fb-regular", sans-serif;
+  font-family: "Sora", sans-serif;
   transition: 0.3s ease-in-out;
   &:hover {
     color: white !important;

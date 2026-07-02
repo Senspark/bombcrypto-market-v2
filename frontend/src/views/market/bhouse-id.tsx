@@ -199,18 +199,31 @@ const Content = styled.div`
   min-width: 62.5rem;
   margin: 0 auto;
   display: flex;
+  @media (max-width: 820px) {
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
 `;
 
 const Right = styled.div`
   width: 100%;
   margin-bottom: 2rem;
   margin-left: 7rem;
+  @media (max-width: 820px) {
+    margin-left: 0;
+  }
 `;
 
 const Back = styled.div`
   max-width: 75rem;
   min-width: 62.5rem;
   margin: 10px auto;
+  @media (max-width: 820px) {
+    min-width: 0;
+    padding: 0 1rem;
+  }
   cursor: pointer;
   transition: 0.3s ease-in-out;
   opacity: 0.6;

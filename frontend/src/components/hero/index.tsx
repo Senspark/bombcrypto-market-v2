@@ -44,7 +44,11 @@ export const HeroIcon: React.FC<HeroIconProps> = ({
   return (
     <IconHero>
       <img
-        style={{ width: "4.875rem", height: "6.313rem" }}
+        style={{
+          width: "4.875rem",
+          height: "6.313rem",
+          objectFit: "contain",
+        }}
         src={"/hero/" + renderURLHero(data.skin, data.color) + ".png"}
         alt=""
       />

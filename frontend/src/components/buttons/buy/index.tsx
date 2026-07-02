@@ -11,24 +11,36 @@ import { getAPI } from "../../../utils/helper";
 
 const ButtonBuy = styled.div`
   padding: 0.938rem 2.125rem;
-  border-radius: 3px;
   font-size: 1.125rem;
   color: #381a09;
   box-sizing: border-box;
   line-height: 1;
-  background: none;
   cursor: pointer;
-  font-weight: 500;
-  border-radius: 3px;
-  background-color: #ff973a;
+  font-weight: 700;
+  border-radius: var(--radius-sm, 6px);
+  background-color: var(--accent, #ff973a);
   border: none;
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(255, 151, 58, 0.25);
   max-width: 6.688rem;
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    background-color 0.15s ease-in-out;
+
+  &:hover {
+    background-color: var(--accent-hover, #ffab5e);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 151, 58, 0.35);
+  }
 
   &.disable {
-    border: solid 2px #3f4564;
-    color: #8d95b7;
+    border: solid 2px var(--border-strong, #3f4564);
+    color: var(--text-muted, #8d95b7);
     background: none;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  &.disable:hover {
+    transform: none;
+    box-shadow: none;
   }
 `;
 

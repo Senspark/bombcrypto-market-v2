@@ -369,14 +369,42 @@ const Item = styled.div`
   align-items: center;
   padding: 1.125rem 1.313rem;
   justify-content: space-around;
-  border: solid 1px #343849;
-  background-color: #191b24;
+  border: solid 1px var(--border, #343849);
+  background-color: var(--surface, #191b24);
+  border-radius: var(--radius, 10px);
+  margin-bottom: 0.875rem;
+  gap: 1rem;
+  flex-wrap: wrap;
   .info {
     width: 10rem;
   }
 
   .icon-hero {
     margin-right: 3rem;
+  }
+
+  @media (max-width: 1024px) {
+    .flex-skill {
+      width: auto !important;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.9rem;
+      justify-content: center;
+    }
+    .skill-item {
+      width: auto !important;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+  @media (max-width: 820px) {
+    flex-direction: column;
+    text-align: center;
+    .info {
+      width: auto;
+    }
+    .icon-hero {
+      margin-right: 0;
+    }
   }
   .uppercase {
     text-transform: uppercase;

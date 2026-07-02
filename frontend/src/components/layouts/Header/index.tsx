@@ -37,9 +37,10 @@ const HeaderComp: React.FC = () => {
 
 const Header = styled.div`
   width: 100%;
-  min-width: 62.5rem;
   height: 3.188rem;
   background-color: #11131b;
+  border-bottom: 1px solid var(--border, #2c3146);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
   position: sticky;
   top: 0;
   left: 0;
@@ -67,6 +68,24 @@ const Header = styled.div`
     }
     &.active {
       background-color: #242735;
+      box-shadow: inset 0 -3px 0 var(--accent, #ff973a);
+    }
+  }
+
+  @media (max-width: 820px) {
+    height: auto;
+    .menu {
+      margin-left: 0;
+    }
+    .link {
+      font-size: 1.05rem;
+      padding: 0 0.6rem;
+      height: 2.6rem;
+      img {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin-right: 0.4rem;
+      }
     }
   }
 `;
@@ -81,6 +100,15 @@ const SpaceRight = styled.div`
   margin-left: auto;
   display: flex;
   justify-content: flex-end;
+  @media (max-width: 820px) {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    & > div {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 `;
 
 export default HeaderComp;

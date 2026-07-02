@@ -79,7 +79,7 @@ const Recently = styled.div`
   .right {
     flex: 1;
     .right-title {
-      font-family: "agency-fb-regular", sans-serif;
+      font-family: "Sora", sans-serif;
       font-size: 2.031rem;
       color: #fff;
       margin-bottom: 1.563rem;

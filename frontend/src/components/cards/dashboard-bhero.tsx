@@ -156,9 +156,11 @@ const Item = styled.div`
   display: flex;
   width: 100%;
   align-items: center;
-  padding: 0.5rem 1.313rem;
-  height: 12rem;
+  padding: 0.85rem 1.313rem;
+  min-height: 12rem;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   .info {
     min-width: 6.375rem;
   }
@@ -168,7 +170,8 @@ const Item = styled.div`
     color: #a6afd7;
   }
   .info-skill {
-    min-width: 19.5rem;
+    min-width: 0;
+    flex: 1;
   }
   .icon-hero {
     img {
@@ -178,7 +181,8 @@ const Item = styled.div`
   }
   .flex-skill {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.85rem;
   }
   .skill-item {
     display: flex;

@@ -80,7 +80,7 @@ const Recently = styled.div`
   .right {
     flex: 1;
     .right-title {
-      font-family: "agency-fb-regular", sans-serif;
+      font-family: "Sora", sans-serif;
       font-size: 2.031rem;
       color: #fff;
       margin-bottom: 1.563rem;
@@ -109,7 +109,7 @@ const Recently = styled.div`
     margin-left: -55px;
     transition: opacity 0.3s;
     background: #fff;
-    font-family: "agency-fb-regular", sans-serif;
+    font-family: "Sora", sans-serif;
   }
 
   .tooltip .tooltiptext::after {

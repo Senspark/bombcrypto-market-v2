@@ -84,7 +84,7 @@ const Ability: React.FC<AbilityProps> = ({ init, name, onChange = () => {} }) =>
     minWidth: "120px",
     maxWidth: "200px",
     borderRadius: "3%",
-    fontFamily: "agency-fb-regular, sans-serif",
+    fontFamily: "Sora, sans-serif",
   };
 
   return (

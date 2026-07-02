@@ -344,7 +344,7 @@ const TextTite = styled.div`
   color: white;
   margin-right: 2.313rem;
   white-space: nowrap;
-  font-family: "agency-fb-regular", sans-serif;
+  font-family: "Sora", sans-serif;
 `;
 
 const ButtonDropdown = styled.button`
