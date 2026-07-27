@@ -22,6 +22,9 @@ export interface IRedisClient {
     // Hash operations
     hmget(key: string, ...fields: string[]): Promise<(string | null)[]>;
 
+    // Append an entry to a stream (XADD) - used to notify the game server
+    xadd(streamKey: string, field: string, value: string): Promise<string | null>;
+
     // Generic get/set for caching
     get(key: string): Promise<string | null>;
 
@@ -97,6 +100,10 @@ export class RedisClient implements IRedisClient {
     async hmget(key: string, ...fields: string[]): Promise<(string | null)[]> {
         if (fields.length === 0) return [];
         return this.client.hmget(key, ...fields);
+    }
+
+    async xadd(streamKey: string, field: string, value: string): Promise<string | null> {
+        return this.client.xadd(streamKey, '*', field, value);
     }
 
     async get(key: string): Promise<string | null> {

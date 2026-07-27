@@ -16,6 +16,10 @@ import {ApiServer, createApiServer} from '@/api/server';
 interface AppState {
     logger: Logger;
     db: DatabasePool | null;
+    /** Game database (bombcrypto2) - house rental only */
+    gameDb: DatabasePool | null;
+    /** Accounts database (backend) - house rental only */
+    accountDb: DatabasePool | null;
     cacheSet: CacheSet | null;
     redis: IRedisClient | null;
     server: ApiServer | null;
@@ -24,6 +28,8 @@ interface AppState {
 const state: AppState = {
     logger: null as unknown as Logger,
     db: null,
+    gameDb: null,
+    accountDb: null,
     cacheSet: null,
     redis: null,
     server: null,
@@ -58,6 +64,25 @@ async function initialize(): Promise<void> {
         throw err;
     }
 
+    // House rental talks to the game databases, not the marketplace one
+    if (config.rental.enabled) {
+        state.logger.info('Connecting to game database (house rental)...');
+        state.gameDb = createDatabasePool(config.rental.gameDsn);
+        state.accountDb = createDatabasePool(config.rental.accountDsn);
+
+        try {
+            await state.gameDb.query('SELECT 1');
+            await state.accountDb.query('SELECT 1');
+            state.logger.info('Game database connections established');
+        } catch (err) {
+            // Do not take the whole marketplace API down: rental routes simply
+            // will not be mounted.
+            state.logger.error('Failed to connect to game database, house rental disabled:', err);
+            state.gameDb = null;
+            state.accountDb = null;
+        }
+    }
+
     // Create cache set
     state.cacheSet = createCacheSet(
         config.server.cacheEviction,
@@ -84,6 +109,8 @@ async function initialize(): Promise<void> {
         cacheSet: state.cacheSet,
         redis: state.redis,
         logger: state.logger,
+        gameDb: state.gameDb,
+        accountDb: state.accountDb,
     });
 
     await state.server.start();
@@ -112,10 +139,18 @@ async function shutdown(signal: string): Promise<void> {
             state.logger?.info('Redis connection closed');
         }
 
-        // Close database pool
+        // Close database pools
         if (state.db) {
             await state.db.end();
             state.logger?.info('Database connection pool closed');
+        }
+
+        if (state.gameDb) {
+            await state.gameDb.end();
+        }
+        if (state.accountDb) {
+            await state.accountDb.end();
+            state.logger?.info('Game database connection pools closed');
         }
 
         state.logger?.info('Shutdown complete');
