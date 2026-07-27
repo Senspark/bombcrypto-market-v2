@@ -28,6 +28,8 @@ export function loadConfig(): Config {
     const blockchainCenterApiUrl = getEnv('BLOCKCHAIN_CENTER_API_URL', '');
     const network = getEnv('NETWORK', 'bsc');
     const redisUrl = getEnv('REDIS_URL', '');
+    // House rental is settled against the game database, not the marketplace one
+    const gameDsn = getEnv('RENTAL_GAME_CONN_STR', '');
 
     const rawConfig = {
         server: {
@@ -61,6 +63,16 @@ export function loadConfig(): Config {
         },
         postgres: {
             dsn: process.env.POSTGRES_CONN_STR ?? '',
+        },
+        rental: {
+            // The feature needs the game database; without it the routes stay off.
+            enabled: gameDsn !== '',
+            gameDsn,
+            accountDsn: getEnv('RENTAL_ACCOUNT_CONN_STR', ''),
+            apLoginUrl: getEnv('RENTAL_AP_LOGIN_URL', ''),
+            isOpen: getEnvBool('RENTAL_IS_OPEN', true),
+            enableChargeJob: getEnvBool('RENTAL_ENABLE_CHARGE_JOB', true),
+            chargeCron: getEnv('RENTAL_CHARGE_CRON', '*/5 * * * *'),
         },
     };
 

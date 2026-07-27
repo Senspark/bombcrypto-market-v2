@@ -2,9 +2,12 @@ import React from "react";
 import Dashboard from "./views/index";
 import Market from "./views/market";
 import MarketBHouse from "./views/market-bhouse";
+import Rentals from "./views/rentals";
+import MyRentals from "./views/my-rentals";
 import Header from "./components/layouts/Header/index";
 import SmartContract from "./context/smc";
 import AccountProvider, { useAccount } from "./context/account";
+import { RentalAuthProvider } from "./context/rental";
 import Account from "./views/account";
 import DetailHero from "./views/market/bhero-id";
 import DetailHouse from "./views/market/bhouse-id";
@@ -28,6 +31,7 @@ function App(): JSX.Element {
       <NotificationProvider>
         <AccountProvider>
           <SmartContract>
+            <RentalAuthProvider>
             <Router>
               <Header />
               <div style={{ padding: 10 }}></div>
@@ -35,6 +39,7 @@ function App(): JSX.Element {
                 <ContentRouter />
               </AnimatePresence>
             </Router>
+            </RentalAuthProvider>
           </SmartContract>
         </AccountProvider>
       </NotificationProvider>
@@ -62,6 +67,16 @@ const ContentRouter: React.FC = () => {
       <Route exact path="/market/bhouse">
         <AnimationLoad>
           <MarketBHouse />
+        </AnimationLoad>
+      </Route>
+      <Route exact path="/rentals">
+        <AnimationLoad>
+          <Rentals />
+        </AnimationLoad>
+      </Route>
+      <Route exact path="/rentals/mine">
+        <AnimationLoad>
+          <MyRentals />
         </AnimationLoad>
       </Route>
       <Route exact path="/market/bhero/:id">

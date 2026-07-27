@@ -4,3 +4,4 @@ export * from './house';
 export * from './user';
 export * from './stats';
 export * from './admin';
+export * from './rental';

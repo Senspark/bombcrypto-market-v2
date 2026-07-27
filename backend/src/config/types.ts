@@ -40,12 +40,31 @@ export const postgresConfigSchema = z.object({
     dsn: z.string(),
 });
 
+/**
+ * House rental (P2P) configuration.
+ *
+ * Rentals are paid with in-game balance, so they read/write the GAME database
+ * (bombcrypto2) plus the accounts database (backend) - both different from the
+ * marketplace database used by the rest of this service. Leave `gameDsn` empty
+ * to disable the feature entirely.
+ */
+export const rentalConfigSchema = z.object({
+    enabled: z.boolean().default(false),
+    gameDsn: z.string().default(''),
+    accountDsn: z.string().default(''),
+    apLoginUrl: z.string().default(''),
+    isOpen: z.boolean().default(true),
+    enableChargeJob: z.boolean().default(true),
+    chargeCron: z.string().default('*/5 * * * *'),
+});
+
 // Full configuration schema
 export const configSchema = z.object({
     server: serverConfigSchema,
     subscriber: subscriberConfigSchema,
     logger: loggerConfigSchema,
     postgres: postgresConfigSchema,
+    rental: rentalConfigSchema,
 });
 
 // Inferred types from schemas
@@ -53,4 +72,5 @@ export type ServerConfig = z.infer<typeof serverConfigSchema>;
 export type SubscriberConfig = z.infer<typeof subscriberConfigSchema>;
 export type LoggerConfig = z.infer<typeof loggerConfigSchema>;
 export type PostgresConfig = z.infer<typeof postgresConfigSchema>;
+export type RentalConfig = z.infer<typeof rentalConfigSchema>;
 export type Config = z.infer<typeof configSchema>;

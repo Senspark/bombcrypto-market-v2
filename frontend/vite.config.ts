@@ -8,6 +8,13 @@ export default defineConfig({
     port: 3001,
     open: true,
     proxy: {
+      // House rental API, served by the marketplace backend (market-api).
+      // The trailing slash matters: without it this prefix would also swallow
+      // the client-side page routes /rentals and /rentals/mine.
+      '/rental/': {
+        target: process.env.VITE_MARKET_API_TARGET ?? 'http://localhost:3000',
+        changeOrigin: true,
+      },
       '/api/bsc': {
         target: 'http://localhost:3003',
         changeOrigin: true,

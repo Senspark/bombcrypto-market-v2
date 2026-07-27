@@ -17,6 +17,12 @@ import {createHeroRoutes} from '@/api/routes';
 import {createHouseRoutes} from '@/api/routes';
 import {createAdminRoutes} from '@/api/routes';
 
+import {createRentalRoutes} from '@/api/routes/rental.routes';
+import {createRentalRepository, IRentalRepository} from '@/repositories/rental.repository';
+import {createRentalService, IRentalService} from '@/services/rental.service';
+import {createRentalChargeJob, RentalChargeJob} from '@/services/rental-charge-job';
+import {createPlayerAuth} from '@/infrastructure/auth/ap-login-auth';
+
 import {createHeroTransactionRepository} from '@/repositories/hero-transaction.repository';
 import {createHouseTransactionRepository} from '@/repositories/house-transaction.repository';
 import {createWalletHistoryRepository} from '@/repositories/wallet-history.repository';
@@ -29,6 +35,10 @@ export interface ServerDeps {
     cacheSet: CacheSet;
     redis: IRedisClient | null;
     logger: Logger;
+    /** Game database (bombcrypto2) - only set when house rental is enabled */
+    gameDb?: DatabasePool | null;
+    /** Accounts database (backend) - resolves wallet -> uid for rental auth */
+    accountDb?: DatabasePool | null;
 }
 
 // Server instance
@@ -37,6 +47,9 @@ export class ApiServer {
     private httpServer: HttpServer | null = null;
     private searchIdTracker: SearchIdTracker;
     private blockchainApi: BlockChainCenterApi | null = null;
+    private rentalRepo: IRentalRepository | null = null;
+    private rentalService: IRentalService | null = null;
+    private rentalChargeJob: RentalChargeJob | null = null;
 
     constructor(private deps: ServerDeps) {
         this.app = express();
@@ -75,6 +88,8 @@ export class ApiServer {
      * Stop the server gracefully
      */
     stop(): Promise<void> {
+        this.rentalChargeJob?.stop();
+
         return new Promise((resolve, reject) => {
             if (!this.httpServer) {
                 resolve();
@@ -203,6 +218,63 @@ export class ApiServer {
                 config.server.adminApiKey
             )
         );
+
+        this.setupRentalRoutes();
+    }
+
+    /**
+     * House rental (P2P) routes. Only mounted when the game database is
+     * configured, since renting is paid with in-game balance.
+     */
+    private setupRentalRoutes(): void {
+        const {config, logger, gameDb, accountDb} = this.deps;
+
+        if (!config.rental.enabled) {
+            logger.info('House rental disabled (no game database configured)');
+            return;
+        }
+        if (!gameDb || !accountDb) {
+            logger.warn('House rental enabled but database pools are missing, skipping routes');
+            return;
+        }
+        if (!config.rental.apLoginUrl) {
+            logger.warn('House rental enabled but RENTAL_AP_LOGIN_URL is empty, skipping routes');
+            return;
+        }
+
+        this.rentalRepo = createRentalRepository(gameDb, accountDb, logger);
+        this.rentalService = createRentalService(
+            this.rentalRepo,
+            this.blockchainApi,
+            config.server.bhouseContractAddress,
+            this.deps.redis,
+            logger
+        );
+        const playerAuth = createPlayerAuth(config.rental.apLoginUrl, this.rentalRepo, logger);
+
+        this.app.use(
+            '/rental',
+            createRentalRoutes({
+                rentalRepo: this.rentalRepo,
+                playerAuth,
+                rentalService: this.rentalService,
+                isRentalOpen: config.rental.isOpen,
+                logger,
+            })
+        );
+        logger.info('House rental routes mounted at /rental');
+
+        if (config.rental.enableChargeJob) {
+            this.rentalChargeJob = createRentalChargeJob(
+                this.rentalRepo,
+                this.rentalService,
+                config.rental.chargeCron,
+                logger
+            );
+            this.rentalChargeJob.start();
+        } else {
+            logger.info('House rental charge job disabled by config');
+        }
     }
 
     private setupErrorHandling(): void {

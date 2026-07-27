@@ -26,6 +26,13 @@ const HeaderComp: React.FC = () => {
           >
             <img src="/images/rectangle-5.png" alt="" /> Market
           </NavLink>
+          <NavLink
+            to="/rentals"
+            className="link agency"
+            activeClassName="active"
+          >
+            <img src="/images/rectangle-5.png" alt="" /> Rentals
+          </NavLink>
         </div>
         <SpaceRight>
           <ConnectWallet />
