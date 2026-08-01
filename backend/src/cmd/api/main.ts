@@ -16,6 +16,8 @@ import {ApiServer, createApiServer} from '@/api/server';
 interface AppState {
     logger: Logger;
     db: DatabasePool | null;
+    /** Game database (bombcrypto2) - stake rankings/explorer only */
+    gameDb: DatabasePool | null;
     cacheSet: CacheSet | null;
     redis: IRedisClient | null;
     server: ApiServer | null;
@@ -24,6 +26,7 @@ interface AppState {
 const state: AppState = {
     logger: null as unknown as Logger,
     db: null,
+    gameDb: null,
     cacheSet: null,
     redis: null,
     server: null,
@@ -58,6 +61,22 @@ async function initialize(): Promise<void> {
         throw err;
     }
 
+    // Stake rankings/explorer read the game database, not the marketplace one
+    if (config.rankings.enabled) {
+        state.logger.info('Connecting to game database (rankings/explorer)...');
+        state.gameDb = createDatabasePool(config.rankings.gameDsn);
+
+        try {
+            await state.gameDb.query('SELECT 1');
+            state.logger.info('Game database connection established');
+        } catch (err) {
+            // Do not take the whole marketplace API down: the rankings routes
+            // simply will not be mounted.
+            state.logger.error('Failed to connect to game database, rankings disabled:', err);
+            state.gameDb = null;
+        }
+    }
+
     // Create cache set
     state.cacheSet = createCacheSet(
         config.server.cacheEviction,
@@ -84,6 +103,7 @@ async function initialize(): Promise<void> {
         cacheSet: state.cacheSet,
         redis: state.redis,
         logger: state.logger,
+        gameDb: state.gameDb,
     });
 
     await state.server.start();
@@ -112,10 +132,14 @@ async function shutdown(signal: string): Promise<void> {
             state.logger?.info('Redis connection closed');
         }
 
-        // Close database pool
+        // Close database pools
         if (state.db) {
             await state.db.end();
             state.logger?.info('Database connection pool closed');
+        }
+        if (state.gameDb) {
+            await state.gameDb.end();
+            state.logger?.info('Game database connection pool closed');
         }
 
         state.logger?.info('Shutdown complete');

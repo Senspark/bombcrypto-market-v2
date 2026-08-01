@@ -28,6 +28,10 @@ export function loadConfig(): Config {
     const blockchainCenterApiUrl = getEnv('BLOCKCHAIN_CENTER_API_URL', '');
     const network = getEnv('NETWORK', 'bsc');
     const redisUrl = getEnv('REDIS_URL', '');
+    // Rankings/explorer read the game database. RENTAL_GAME_CONN_STR is
+    // accepted as a fallback because the docker-compose stack already wires
+    // the game database under that name (house rental feature).
+    const gameDsn = getEnv('GAME_CONN_STR', '') || getEnv('RENTAL_GAME_CONN_STR', '');
 
     const rawConfig = {
         server: {
@@ -61,6 +65,10 @@ export function loadConfig(): Config {
         },
         postgres: {
             dsn: process.env.POSTGRES_CONN_STR ?? '',
+        },
+        rankings: {
+            enabled: gameDsn !== '',
+            gameDsn,
         },
     };
 

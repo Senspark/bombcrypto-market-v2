@@ -68,6 +68,26 @@ export const Tag = styled.div`
   &.superlegend {
     background: #ff0759;
   }
+
+  &.mega {
+    background: #2ea8ff;
+  }
+  &.supermega {
+    background: #155ce0;
+  }
+  &.mystic {
+    background: #00cdb0;
+    color: #06251f;
+  }
+  &.supermystic {
+    background: #ff5c00;
+  }
+
+  /* network badge on consolidated rankings */
+  &.network {
+    background: #3a3f54;
+    color: #a6afd7;
+  }
 `;
 
 export const IconItem = styled.img<IconItemProps>`

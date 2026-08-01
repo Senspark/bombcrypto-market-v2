@@ -499,12 +499,13 @@ export class HeroTransactionRepository implements IHeroTransactionRepository {
         if (context.bombCount > 0) qb.whereGte('bomb_count', context.bombCount);
         if (context.bombRange > 0) qb.whereGte('bomb_range', context.bombRange);
 
-        // Abilities filter (OR conditions)
+        // Abilities filter (AND conditions): the hero must have ALL selected
+        // abilities. Each condition is its own WHERE clause (the builder joins
+        // them with AND), instead of a single OR group.
         if (context.abilities.length > 0) {
-            const orConditions = context.abilities
+            context.abilities
                 .sort((a, b) => a - b)
-                .map(ability => `ability_${ability} = true`);
-            qb.whereOr(orConditions);
+                .forEach(ability => qb.whereRaw(`ability_${ability} = true`));
         }
 
         // Hero S abilities filter (stored as string, use LIKE or equality)

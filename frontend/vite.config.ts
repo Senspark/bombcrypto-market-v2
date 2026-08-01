@@ -6,15 +6,25 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001,
-    open: true,
+    open: false,
     proxy: {
+      // New market-api (decode + transactions search). Target is the docker
+      // service in compose, localhost when running on the host.
+      '/market-api': {
+        target: process.env.VITE_MARKET_API_TARGET || 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/market-api/, ''),
+      },
+      // Marketplace REST API. Defaults to a host-run backend; inside the
+      // docker stack VITE_MARKET_API_TARGET points at the market-api service
+      // (the same target the /market-api proxy uses).
       '/api/bsc': {
-        target: 'http://localhost:3003',
+        target: process.env.VITE_MARKET_API_TARGET || 'http://localhost:3003',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/bsc/, ''),
       },
       '/api/polygon': {
-        target: 'http://localhost:3003',
+        target: process.env.VITE_MARKET_API_TARGET || 'http://localhost:3003',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/polygon/, ''),
       },

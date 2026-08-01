@@ -22,14 +22,22 @@ const CheckBox = styled.div`
 
   .content {
     cursor: pointer;
+    border-radius: 4px;
+    transition: box-shadow 0.2s ease-in-out;
+    /* box-shadow does not affect layout, so the icon size stays the same */
     img {
       filter: grayscale(100%);
+      transition: filter 0.2s ease-in-out;
+    }
+    &:hover img {
+      filter: grayscale(0%);
     }
   }
 
-  input:checked + label {
-    .content img {
-      // filter: grayscale(0%);
+  input:checked + label .content {
+    box-shadow: 0 0 0 2px #ff973a;
+    img {
+      filter: grayscale(0%);
     }
   }
 

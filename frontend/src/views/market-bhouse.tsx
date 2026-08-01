@@ -3,6 +3,7 @@ import styled from "styled-components";
 import GroupCheckBox from "../components/forms/checkbox";
 import { NavLink, useHistory } from "react-router-dom";
 import { debounce, convertFilter, convertQueryToObject } from "../utils/helper";
+import { withNetworkParam } from "../utils/config";
 import Pagination from "../components/layouts/Pagination";
 import Search from "../components/forms/search";
 import Loading from "../components/layouts/loading";
@@ -125,7 +126,7 @@ const Statistics: React.FC = () => {
   const fetch = async (params: ParamsState) => {
     if (unount) return;
     const result = convertFilter(params);
-    history.replace(history.location.pathname + "?" + result);
+    history.replace(withNetworkParam(history.location.pathname + "?" + result, network));
     try {
       const listing = await axios.get(
         getAPI(network) + "transactions/houses/search?status=listing&" + result

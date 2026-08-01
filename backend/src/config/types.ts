@@ -40,12 +40,25 @@ export const postgresConfigSchema = z.object({
     dsn: z.string(),
 });
 
+/**
+ * Stake rankings + wallet/hero/house explorer.
+ *
+ * They read the GAME database (bombcrypto2) - a different database from the
+ * marketplace one used by the rest of this service. Leave `gameDsn` empty to
+ * disable the feature entirely (the routes are simply not mounted).
+ */
+export const rankingsConfigSchema = z.object({
+    enabled: z.boolean().default(false),
+    gameDsn: z.string().default(''),
+});
+
 // Full configuration schema
 export const configSchema = z.object({
     server: serverConfigSchema,
     subscriber: subscriberConfigSchema,
     logger: loggerConfigSchema,
     postgres: postgresConfigSchema,
+    rankings: rankingsConfigSchema,
 });
 
 // Inferred types from schemas
@@ -53,4 +66,5 @@ export type ServerConfig = z.infer<typeof serverConfigSchema>;
 export type SubscriberConfig = z.infer<typeof subscriberConfigSchema>;
 export type LoggerConfig = z.infer<typeof loggerConfigSchema>;
 export type PostgresConfig = z.infer<typeof postgresConfigSchema>;
+export type RankingsConfig = z.infer<typeof rankingsConfigSchema>;
 export type Config = z.infer<typeof configSchema>;

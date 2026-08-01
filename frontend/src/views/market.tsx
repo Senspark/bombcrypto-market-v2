@@ -14,11 +14,12 @@ import {
   convertFilter,
   convertQueryToObject,
   getAPI,
+  axiosGetWithRetry,
 } from "../utils/helper";
+import { withNetworkParam } from "../utils/config";
 import Pagination from "../components/layouts/Pagination";
 import Search from "../components/forms/search";
 import Loading from "../components/layouts/loading";
-import axios from "axios";
 import { useAccount } from "../context/account";
 import Select from "../components/forms/select";
 import _ from "lodash";
@@ -159,9 +160,9 @@ const Statistics: React.FC = () => {
   const fetch = async (params: ParamsState) => {
     if (unount) return;
     const result = convertFilter(params);
-    history.replace(location.pathname + "?" + result);
+    history.replace(withNetworkParam(location.pathname + "?" + result, network));
     try {
-      const listing = await axios.get(
+      const listing = await axiosGetWithRetry(
         getAPI(network) + "transactions/heroes/search?status=listing&" + result
       );
       const { page, size, total_count, total_pages, transactions } =

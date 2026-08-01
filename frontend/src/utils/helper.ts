@@ -2,6 +2,28 @@ import { formatEther } from "ethers";
 import _ from "lodash";
 import { rest_api, NETWORK } from "./config";
 import queryString from "query-string";
+import axios, { AxiosResponse } from "axios";
+
+// GET with retry: on error (network / non-2xx) retries up to `retries` times
+// (default 3) with a short increasing backoff, then rethrows the last error.
+export const axiosGetWithRetry = async <T = any>(
+  url: string,
+  retries = 3,
+  delayMs = 800
+): Promise<AxiosResponse<T>> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await axios.get<T>(url);
+    } catch (err) {
+      lastError = err;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+};
 
 interface ColorMap {
   [key: number]: string;
@@ -91,6 +113,10 @@ const Rarity: Record<number, string> = {
   3: "Epic",
   4: "Legend",
   5: "SP Legend",
+  6: "Mega",
+  7: "Super Mega",
+  8: "Mystic",
+  9: "Super Mystic",
 };
 
 export const mapTag: Record<number, string> = {
@@ -100,6 +126,10 @@ export const mapTag: Record<number, string> = {
   3: "epic",
   4: "legend",
   5: "superlegend",
+  6: "mega",
+  7: "supermega",
+  8: "mystic",
+  9: "supermystic",
 };
 
 export const skills: Record<number, string> = {

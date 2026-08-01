@@ -22,6 +22,11 @@ import {createHouseTransactionRepository} from '@/repositories/house-transaction
 import {createWalletHistoryRepository} from '@/repositories/wallet-history.repository';
 import {createAdminRepository} from '@/repositories/block-tracking.repository';
 
+import {createRankingRoutes} from '@/api/routes/ranking.routes';
+import {createExplorerRoutes} from '@/api/routes/explorer.routes';
+import {createRankingRepository} from '@/repositories/ranking.repository';
+import {NETWORK_BY_ALIAS} from '@/domain/models/ranking';
+
 // Server dependencies
 export interface ServerDeps {
     config: Config;
@@ -29,6 +34,8 @@ export interface ServerDeps {
     cacheSet: CacheSet;
     redis: IRedisClient | null;
     logger: Logger;
+    /** Game database (bombcrypto2) - only set when rankings are enabled */
+    gameDb?: DatabasePool | null;
 }
 
 // Server instance
@@ -203,6 +210,42 @@ export class ApiServer {
                 config.server.adminApiKey
             )
         );
+
+        this.setupRankingRoutes();
+    }
+
+    /**
+     * Stake rankings + wallet/hero/house explorer. Read-only queries over the
+     * game database (bombcrypto2); without that pool the routes stay off.
+     */
+    private setupRankingRoutes(): void {
+        const {config, logger, gameDb, cacheSet} = this.deps;
+
+        if (!gameDb) {
+            logger.info('Rankings/explorer disabled (no game database configured)');
+            return;
+        }
+
+        const network = NETWORK_BY_ALIAS[config.server.network] ?? 'BSC';
+        const rankingRepo = createRankingRepository(gameDb, network, logger);
+
+        this.app.use(
+            '/rankings',
+            createRankingRoutes({
+                rankingRepo,
+                cache: cacheSet.listCache,
+                logger,
+            })
+        );
+        this.app.use(
+            '/explorer',
+            createExplorerRoutes({
+                rankingRepo,
+                cache: cacheSet.getCache,
+                logger,
+            })
+        );
+        logger.info(`Rankings/explorer routes mounted at /rankings and /explorer (network ${network})`);
     }
 
     private setupErrorHandling(): void {
