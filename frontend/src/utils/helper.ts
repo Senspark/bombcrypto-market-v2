@@ -113,6 +113,10 @@ const Rarity: Record<number, string> = {
   3: "Epic",
   4: "Legend",
   5: "SP Legend",
+  6: "Mega",
+  7: "Super Mega",
+  8: "Mystic",
+  9: "Super Mystic",
 };
 
 export const mapTag: Record<number, string> = {
@@ -122,6 +126,10 @@ export const mapTag: Record<number, string> = {
   3: "epic",
   4: "legend",
   5: "superlegend",
+  6: "mega",
+  7: "supermega",
+  8: "mystic",
+  9: "supermystic",
 };
 
 export const skills: Record<number, string> = {
