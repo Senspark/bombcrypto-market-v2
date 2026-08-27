@@ -38,7 +38,7 @@ interface ListingProps {
 
 interface ListItem {
   id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   rarity?: number;
   level?: number;
   bomb_power?: number;
@@ -60,7 +60,7 @@ interface ListItem {
 interface ParamsState {
   page?: number;
   size: number;
-  total_pages?: number;
+  totalPages?: number;
   [key: string]: unknown;
 }
 
@@ -185,7 +185,7 @@ const Listing: React.FC<ListingProps> = ({ emit = () => {} }) => {
               </div>
             )}
             {list &&
-              list.map((element) => <Child key={element.id || element.token_id} data={element as any} />)}
+              list.map((element) => <Child key={element.id || element.tokenId} data={element as any} />)}
           </ContentTab>
         </Recently>
         <WrapPagination>
@@ -193,7 +193,7 @@ const Listing: React.FC<ListingProps> = ({ emit = () => {} }) => {
             onChange={onChange}
             page={params.page}
             name="page"
-            total_page={params.total_pages}
+            total_page={params.totalPages}
           />
         </WrapPagination>
       </SubWrap>

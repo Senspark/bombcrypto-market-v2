@@ -43,6 +43,18 @@ const color6: ColorMap = {
   6: "",
 };
 
+// Chess skins only ship in Blue (color id 1) and Red (color id 3).
+const chess: ColorMap = {
+  1: "blue",
+  3: "red",
+};
+
+// NekoChan only ships in Red (color id 3) and White (color id 4).
+const nekochan: ColorMap = {
+  3: "red",
+  4: "white",
+};
+
 interface HeroInfo {
   name: string;
   color: ColorMap;
@@ -81,6 +93,45 @@ const hero: Record<number, HeroInfo> = {
   29: { name: "footballdoge", color: color6 },
   30: { name: "footballpepe", color: color6 },
   31: { name: "footballninja", color: color6 },
+  // Super skins 32..56 — single-color (color id ignored).
+  32: { name: "superknight", color: color6 },
+  33: { name: "supercowboy", color: color6 },
+  34: { name: "superwitch", color: color6 },
+  35: { name: "superninja", color: color6 },
+  36: { name: "poo", color: color6 },
+  37: { name: "gku", color: color6 },
+  38: { name: "pinkytoon", color: color6 },
+  39: { name: "stickman", color: color6 },
+  40: { name: "monitor", color: color6 },
+  41: { name: "dragon", color: color6 },
+  42: { name: "santa", color: color6 },
+  43: { name: "miner", color: color6 },
+  44: { name: "calico", color: color6 },
+  45: { name: "kuroneko", color: color6 },
+  46: { name: "goldenkat", color: color6 },
+  47: { name: "mrdear", color: color6 },
+  48: { name: "tlion", color: color6 },
+  49: { name: "superfrog", color: color6 },
+  50: { name: "dogetr", color: color6 },
+  // Chess King (51) — 2 colors Red/Blue.
+  51: { name: "chessking", color: chess },
+  52: { name: "cupid", color: color6 },
+  53: { name: "bguy", color: color6 },
+  54: { name: "pinkybear", color: color6 },
+  // NekoChan (55) — 2 colors White/Red.
+  55: { name: "nekochan", color: nekochan },
+  56: { name: "hesman", color: color6 },
+  57: { name: "chessqueen", color: chess },
+  58: { name: "chesspawn", color: chess },
+  59: { name: "chessrook", color: chess },
+  60: { name: "chesshorse", color: chess },
+  61: { name: "chessbishop", color: chess },
+  // Batch 62..66 — single-color.
+  62: { name: "irondeux", color: color6 },
+  63: { name: "omega", color: color6 },
+  64: { name: "saber", color: color6 },
+  65: { name: "demonslayer", color: color6 },
+  66: { name: "koiman", color: color6 },
 };
 
 
@@ -91,6 +142,10 @@ const Rarity: Record<number, string> = {
   3: "Epic",
   4: "Legend",
   5: "SP Legend",
+  6: "Mega",
+  7: "Super Mega",
+  8: "Mystic",
+  9: "Super Mystic",
 };
 
 export const mapTag: Record<number, string> = {
@@ -100,6 +155,10 @@ export const mapTag: Record<number, string> = {
   3: "epic",
   4: "legend",
   5: "superlegend",
+  6: "mega",
+  7: "supermega",
+  8: "mystic",
+  9: "supermystic",
 };
 
 export const skills: Record<number, string> = {
@@ -110,6 +169,9 @@ export const skills: Record<number, string> = {
   5: "fast_charge_icon",
   6: "bomb_pass_icon",
   7: "block_pass_icon",
+  8: "coming_soon_icon",
+  9: "coming_soon_icon",
+  10: "coming_soon_icon",
 };
 
 export const skillsDesc: Record<number, string> = {
@@ -120,6 +182,9 @@ export const skillsDesc: Record<number, string> = {
   5: "+ 0,5 Stamina/Min while Resting",
   6: "Go through The Bomb",
   7: "Go through The Block",
+  8: "Coming soon",
+  9: "Coming soon",
+  10: "Coming soon",
 };
 
 export const mapHouse: Record<number, string> = {
@@ -139,13 +204,20 @@ export const skillsDescHeroS: Record<number, string> = {
   1: "Immune to Thunder",
 };
 
+// Lv1 base durability per rarity, sourced from data.md / Phase 2 config_hero_upgrade_shield.
+// Lv2/Lv3/Lv4 multiply by 2/3/4 respectively (server-side); this map shows the Lv1 base
+// because the card-level UI doesn't know the hero's current shield level.
 export const totalShieldHeroS: Record<number, string> = {
-  0: "400",
-  1: "450",
-  2: "500",
-  3: "600",
-  4: "700",
-  5: "800",
+  0: "1000",
+  1: "1125",
+  2: "1250",
+  3: "1500",
+  4: "1750",
+  5: "2000",
+  6: "2250",
+  7: "2500",
+  8: "2750",
+  9: "3000",
 };
 
 interface HouseDetail {
@@ -222,6 +294,15 @@ export const numberFormat = (number: number | string | undefined | null, round: 
   return num_parts.join(".");
 };
 
+// Some source icons are drawn much wider than the rest (e.g. pepeclown's jester
+// pom-poms stick out sideways), so at a fixed display width their character looks
+// shrunken. We keep the original art intact and crop it visually at render time:
+// `aspect` = visible width / height (portrait < 1). The image is fit by height and
+// horizontally centered inside a clip box, so the side overflow is hidden.
+export const heroIconCrop: Record<number, number> = {
+  18: 0.7, // pepeclown
+};
+
 export const renderURLHero = (skin: number, skin_color: number): string => {
   let url = "";
   if (skin === 0) {
@@ -234,7 +315,19 @@ export const renderURLHero = (skin: number, skin_color: number): string => {
   const { name, color } = hero[skin];
 
   url += name;
-  if (color[skin_color]) url += "_" + color[skin_color];
+  let colorName = color[skin_color];
+  // Color id doesn't resolve → fall back to a variant this skin actually ships,
+  // preferring white, then blue, else its first available color.
+  // Single-color skins (color6 = {6:""}) have no real variant, so they stay suffix-less.
+  if (!colorName) {
+    const variants = Object.values(color).filter(Boolean);
+    colorName = variants.includes("white")
+      ? "white"
+      : variants.includes("blue")
+      ? "blue"
+      : variants[0];
+  }
+  if (colorName) url += "_" + colorName;
   url += "_icon";
   return url;
 };

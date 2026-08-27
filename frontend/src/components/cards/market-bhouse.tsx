@@ -14,10 +14,10 @@ import {
 import { IMAGE_TOKEN_SHOW } from "../../utils/config";
 
 interface HouseData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   capacity: number;
-  seller_wallet_address: string;
+  sellerWalletAddress: string;
   amount: string | number | bigint;
   isToken?: string;
 }
@@ -39,7 +39,7 @@ const BHeroFullWidth: React.FC<MarketBhouseProps> = ({ data, refesh }) => {
         />
       </div>
       <div className="info">
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapHouse[data.rarity]}</Tag>
       </div>
 
@@ -59,8 +59,8 @@ const BHeroFullWidth: React.FC<MarketBhouseProps> = ({ data, refesh }) => {
         <div className="owner">
           <div className="title">OWNER</div>
           <div className="skill">
-            <div>{minAddress(data.seller_wallet_address)}</div>
-            <Copy data={data.seller_wallet_address} />
+            <div>{minAddress(data.sellerWalletAddress)}</div>
+            <Copy data={data.sellerWalletAddress} />
           </div>
         </div>
       </div>
@@ -79,10 +79,10 @@ const BHeroFullWidth: React.FC<MarketBhouseProps> = ({ data, refesh }) => {
             data={data}
             reload={refesh}
             price={data.amount}
-            id={data.token_id}
+            id={data.tokenId}
           />
           <div className="link">
-            <LinkProfile id={data.token_id} type="bhouse" />
+            <LinkProfile id={data.tokenId} type="bhouse" />
           </div>
         </div>
       </div>

@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import styled from "styled-components";
+import axios from "axios";
 import { useContract } from "../../context/smc";
 import { fee, SmartContracts, NETWORK } from "../../utils/config";
+import { getAPI } from "../../utils/helper";
 import Close from "../icons/close";
 import { useAccount } from "../../context/account";
 import { Modal, Dropdown } from "antd";
 import arrow_dropdown from "../../assets/images/arrow_dropdown.png";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 interface SellModalData {
   id: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   rarity?: string | number;
   abilities?: number[] | string[];
   bomb_power?: number;
@@ -33,7 +37,7 @@ const SellModal: React.FC<SellModalProps> = ({ data, hide, minPrice, setStatus, 
   const id = data.id;
   const [price, setPrice] = useState<number | undefined>();
   const [isShowCoin, setIsShowCoin] = useState(true);
-  const { createOrder, createOrderBhouse } = useContract();
+  const { createOrder, createOrderBhouse, getOrder, getOrderBhouse } = useContract();
   const { network } = useAccount();
   const mountedRef = useRef(true);
 
@@ -60,6 +64,31 @@ const SellModal: React.FC<SellModalProps> = ({ data, hide, minPrice, setStatus, 
   const createOrderModal = async () => {
     if (!price && isSellable) return;
     hide();
+
+    // Stale on-chain listing: the item may already be listed on the contract while
+    // the backend has no row (a missed CreateOrder event). createOrder would revert
+    // "order existed". Detect it, ask the backend to backfill, then refresh so the
+    // item shows as selling (Cancel) instead of offering Sell again.
+    try {
+      const existing =
+        name === "BHouse" ? await getOrderBhouse(id) : await getOrder(id);
+      // getOrder returns (tokenDetail, seller, price, startedAt); read seller by
+      // index to avoid ethers Result named-access throwing when outputs are unnamed.
+      const seller = existing && existing[1];
+      if (seller && seller !== ZERO_ADDRESS) {
+        const path =
+          name === "BHouse"
+            ? "transactions/houses/sync/"
+            : "transactions/heroes/sync/";
+        await axios.post(getAPI(network) + path + id);
+        if (mountedRef.current) {
+          setStatus("success");
+        }
+        return;
+      }
+    } catch {
+      // No active on-chain order → fall through to a normal createOrder.
+    }
 
     if (name === "BHouse") {
       const status = await createOrderBhouse(id, String(price!), isValueSelect);
@@ -133,7 +162,7 @@ const SellModal: React.FC<SellModalProps> = ({ data, hide, minPrice, setStatus, 
         </div>
       </div>
       <div className="agency des">
-        Choose your sale method {name} <span>#{data.token_id || data.id}</span>
+        Choose your sale method {name} <span>#{data.tokenId || data.id}</span>
       </div>
       <RowCustom>
         <TextTite>Sell at</TextTite>

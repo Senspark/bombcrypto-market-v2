@@ -16,6 +16,19 @@ import type {Logger} from '@/utils/logger';
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 2000, 3000]; // ms
 
+/** Markers of a contract revert, as opposed to a transport failure */
+const REVERT_MARKERS = [
+    'execution reverted',
+    'CALL_EXCEPTION',
+    'missing revert data',
+    'nonexistent token',
+    'invalid token ID',
+];
+
+export function isRevertError(message: string): boolean {
+    return REVERT_MARKERS.some((marker) => message.includes(marker));
+}
+
 /** API response types */
 interface ApiResponse<T> {
     success: boolean;
@@ -179,7 +192,10 @@ export class BlockChainCenterApi {
                 const response = await fetch(url, options);
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    // Keep the body: it carries the revert reason
+                    const body = await response.text().catch(() => '');
+                    const detail = body ? ` - ${body.slice(0, 300)}` : '';
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}${detail}`);
                 }
 
                 const data = (await response.json()) as ApiResponse<T>;
@@ -198,6 +214,11 @@ export class BlockChainCenterApi {
                     maxRetries: MAX_RETRIES,
                     error: this.getErrorMessage(err),
                 });
+
+                // A revert is deterministic - retrying returns the same answer
+                if (isRevertError(this.getErrorMessage(err))) {
+                    throw err;
+                }
 
                 // Wait before retry (except on last attempt)
                 if (attempt < MAX_RETRIES - 1) {

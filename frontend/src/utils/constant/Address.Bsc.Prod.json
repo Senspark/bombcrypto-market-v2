@@ -5,6 +5,5 @@
   "bhouse": "0xea3516feb8f3e387eec3004330fd30aff615496a",
   "bheromarket": "0x376A10E7f125A4E0a567cc08043c695Cd8EDd704",
   "bhousemarket": "0x049896f350C802CD5C91134E5f35Ec55FA8f0108",
-  "rpc": "https://bsc-dataseed2.binance.org/",
-  "api": "https://market.bombcrypto.io/api/bsc/"
+  "rpc": "https://bsc-dataseed2.binance.org/"
 }

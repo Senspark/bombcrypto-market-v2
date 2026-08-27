@@ -5,22 +5,22 @@
 export interface BHouse {
   // Database/Transaction fields
   id: number;
-  token_id: number;
-  tx_hash: string;
-  block_number: number;
-  block_timestamp: string;
+  tokenId: number;
+  txHash: string;
+  blockNumber: number;
+  blockTimestamp: string;
   status: string;
-  seller_wallet_address: string;
-  buyer_wallet_address: string;
+  sellerWalletAddress: string;
+  buyerWalletAddress: string;
   amount: string;
-  pay_token: string;
+  payToken: string;
   updated_at: string;
 
   // NFT attributes
   rarity: number;
   capacity: number;
   recovery: number;
-  nft_block_number: number;
+  nftBlockNumber: number;
 
   // Frontend-added fields
   isToken?: string;

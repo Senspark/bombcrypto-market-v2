@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { renderURLHero } from "../../utils/helper";
+import { renderURLHero, heroIconCrop } from "../../utils/helper";
+
+const ICON_WIDTH = "4.875rem";
 
 const IconHero = styled.div`
   position: relative;
@@ -41,13 +43,41 @@ export const HeroIcon: React.FC<HeroIconProps> = ({
     return;
   }, [data, heroType]);
 
+  const heroSrc = "/hero/" + renderURLHero(data.skin, data.color) + ".png";
+  const cropAspect = heroIconCrop[data.skin];
+
   return (
     <IconHero>
-      <img
-        style={{ width: "4.875rem", height: "6.313rem" }}
-        src={"/hero/" + renderURLHero(data.skin, data.color) + ".png"}
-        alt=""
-      />
+      {cropAspect ? (
+        // Clip the wide source art down to a portrait frame; original image is untouched.
+        <span
+          style={{
+            display: "block",
+            width: ICON_WIDTH,
+            height: `calc(${ICON_WIDTH} / ${cropAspect})`,
+            overflow: "hidden",
+            position: "relative",
+          }}
+        >
+          <img
+            style={{
+              height: "100%",
+              width: "auto",
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+            }}
+            src={heroSrc}
+            alt=""
+          />
+        </span>
+      ) : (
+        <img
+          style={{ width: ICON_WIDTH, height: "auto" }}
+          src={heroSrc}
+          alt=""
+        />
+      )}
       <IconS src={iconUrl} style={iconStyle} />
     </IconHero>
   );

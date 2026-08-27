@@ -73,10 +73,10 @@ interface SkillProps {
 
 export const Skill: React.FC<SkillProps> = ({ data }) => {
   const isHeroS =
-    !_.isEmpty(data?.abilities_hero_s) &&
-    !_.includes(data?.abilities_hero_s, 0);
+    !_.isEmpty(data?.abilitiesHeroS) &&
+    !_.includes(data?.abilitiesHeroS, 0);
   const abilities = data.abilities.map((item) => (typeof item === 'string' ? parseInt(item) : item)) || [];
-  const abilities_hero_s = data.abilities_hero_s || [];
+  const abilities_hero_s = data.abilitiesHeroS || [];
   const shieldData = data.shieldData ?? null;
 
   return (

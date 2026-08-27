@@ -3,6 +3,7 @@ import {HouseTxFilterContext, HouseTxListRepr, HouseTxRepr, HouseTxReq,} from '.
 import {WalletHistoryRepr, WalletTxFilterContext,} from '../models/user';
 import {Stats} from '../models/stats';
 import {ProcessingBlockNumberRepr} from '../models/admin';
+import {SuspiciousHeroRepr, SuspiciousWalletRepr} from '../models/suspicious';
 
 // Hero transaction repository interface
 export interface IHeroTransactionRepository {
@@ -94,6 +95,9 @@ export interface IBlockTrackingRepository {
     // Set current processing block number (only if advancing)
     setBlockNumber(blockNumber: number): Promise<void>;
 
+    // Insert tracker row if missing, or fast-forward to blockNumber if greater than current
+    seedOrAdvanceBlockNumber(blockNumber: number): Promise<void>;
+
     // Record failed block and return failure count
     increaseFailure(blockNumber: number): Promise<number>;
 
@@ -108,4 +112,25 @@ export interface IBlockTrackingRepository {
 export interface IAdminRepository {
     // Get processing block numbers for both hero and house subscribers
     getProcessingBlockNumbers(): Promise<ProcessingBlockNumberRepr>;
+}
+
+// Suspicious hero / wallet repository interface
+export interface ISuspiciousRepository {
+    // List every marked hero
+    listHeroes(): Promise<SuspiciousHeroRepr[]>;
+
+    // List every marked wallet
+    listWallets(): Promise<SuspiciousWalletRepr[]>;
+
+    // Mark heroes as suspicious (upsert), returns affected row count
+    addHeroes(tokenIds: number[], reason: string, note: string | null): Promise<number>;
+
+    // Unmark heroes, returns affected row count
+    removeHeroes(tokenIds: number[]): Promise<number>;
+
+    // Mark wallets as suspicious (upsert), returns affected row count
+    addWallets(addresses: string[], reason: string, note: string | null): Promise<number>;
+
+    // Unmark wallets, returns affected row count
+    removeWallets(addresses: string[]): Promise<number>;
 }

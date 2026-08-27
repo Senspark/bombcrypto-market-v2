@@ -60,6 +60,12 @@ export abstract class BaseSubscriber {
     async start(): Promise<void> {
         this.logger.info(`${this.getName()} starting...`);
 
+        // Honor STARTING_BLOCK_NUMBER env: seed tracker if missing, fast-forward if env > DB
+        if (this.config.startingBlockNumber > 0) {
+            await this.blockRepo.seedOrAdvanceBlockNumber(this.config.startingBlockNumber);
+            this.logger.info(`${this.getName()} ensured block tracker >= ${this.config.startingBlockNumber}`);
+        }
+
         // Run both loops concurrently
         const subscribePromise = this.subscribeLoop();
         const retryPromise = this.retryLoop();

@@ -4,7 +4,7 @@ import Close from "../icons/close";
 import { Modal } from "antd";
 
 interface BuyErrorData {
-  token_id?: string | number;
+  tokenId?: string | number;
   id?: string | number;
   [key: string]: any;
 }
@@ -20,7 +20,7 @@ interface BuyErrorProps {
 }
 
 const BuyError: React.FC<BuyErrorProps> = ({ data, id, hide, message, reload, bType, isShowing }) => {
-  const displayId = id || data?.token_id || data?.id;
+  const displayId = id || data?.tokenId || data?.id;
 
   const oke = () => {
     if (reload) reload();

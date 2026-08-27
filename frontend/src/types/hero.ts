@@ -5,15 +5,15 @@
 export interface BHero {
   // Database/Transaction fields
   id: number;
-  token_id: number;
-  tx_hash: string;
-  block_number: number;
-  block_timestamp: string;
+  tokenId: number;
+  txHash: string;
+  blockNumber: number;
+  blockTimestamp: string;
   status: string;
-  seller_wallet_address: string;
-  buyer_wallet_address: string;
+  sellerWalletAddress: string;
+  buyerWalletAddress: string;
   amount: string;
-  pay_token: string;
+  payToken: string;
   updated_at: string;
 
   // NFT attributes
@@ -23,13 +23,13 @@ export interface BHero {
   color: number;
   stamina: number;
   speed: number;
-  bomb_power: number;
-  bomb_count: number;
-  bomb_range: number;
-  bomb_skin: number;
+  bombPower: number;
+  bombCount: number;
+  bombRange: number;
+  bombSkin: number;
   abilities: number[];
-  abilities_hero_s: number[];
-  nft_block_number: number;
+  abilitiesHeroS: number[];
+  nftBlockNumber: number;
 
   // Frontend-added fields
   isToken?: string;
@@ -38,6 +38,19 @@ export interface BHero {
 
   // Shield & Stake data (from backend)
   shieldData?: ShieldOutput | null;
+
+  // Set when the hero or its seller is on the suspicious list (from backend)
+  suspicious?: SuspiciousFlag | null;
+}
+
+/**
+ * Marks a hero suspected of being obtained through fraud or a hacked account.
+ * `matchedBy` tells whether the hero itself is listed, or the wallet selling it.
+ */
+export interface SuspiciousFlag {
+  reason: string;
+  note: string | null;
+  matchedBy: "token" | "seller";
 }
 
 export interface ShieldOutput {

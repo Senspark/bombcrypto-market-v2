@@ -130,15 +130,15 @@ const Statistics: React.FC = () => {
       const listing = await axios.get(
         getAPI(network) + "transactions/houses/search?status=listing&" + result
       );
-      const { page, size, total_count, total_pages } = listing.data;
+      const { page, size, totalCount, totalPages } = listing.data;
       const data = await getListTokenPay(listing, true);
       setData((data as unknown as ListItem[]) || []);
 
       setParams((state) => ({
         ...state,
         page: page,
-        total_count,
-        total_pages,
+        total_count: totalCount,
+        total_pages: totalPages,
         size,
       }));
     } catch (error) {}

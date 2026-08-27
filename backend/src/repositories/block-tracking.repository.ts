@@ -55,6 +55,16 @@ export class BlockTrackingRepository implements IBlockTrackingRepository {
         }
     }
 
+    async seedOrAdvanceBlockNumber(blockNumber: number): Promise<void> {
+        const sql = `
+      INSERT INTO ${this.blockNumberTable} AS t (id, block_number)
+      VALUES (TRUE, $1)
+      ON CONFLICT (id) DO UPDATE SET
+        block_number = GREATEST(t.block_number, EXCLUDED.block_number)
+    `;
+        await this.db.query(sql, [blockNumber]);
+    }
+
     async increaseFailure(blockNumber: number): Promise<number> {
         const sql = `
       INSERT INTO ${this.failedBlocksTable} AS t (block_number, created_at, updated_at)

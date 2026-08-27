@@ -27,29 +27,31 @@ import {
 import { useAccount } from "../../context/account";
 import { HeroIcon } from "../hero";
 import _ from "lodash";
-import { ShieldOutput } from "../../types/hero";
+import { ShieldOutput, SuspiciousFlag } from "../../types/hero";
+import { SuspiciousBadge } from "../common/suspicious";
 
 interface HeroData {
   id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   ref_id?: string | number;
   rarity: number;
   level: number;
-  bomb_power: number;
+  bombPower: number;
   speed: number;
   stamina: number;
-  bomb_count: number;
-  bomb_range: number;
+  bombCount: number;
+  bombRange: number;
   abilities?: number[];
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   amount?: string | number | bigint;
   isToken?: string;
   skin: number;
   color: number;
-  nft_block_number?: number;
-  block_timestamp?: string;
-  seller_wallet_address?: string;
+  nftBlockNumber?: number;
+  blockTimestamp?: string;
+  sellerWalletAddress?: string;
   shieldData?: ShieldOutput | null;
+  suspicious?: SuspiciousFlag | null;
 }
 
 interface InventoryBheroProps {
@@ -66,8 +68,8 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
   cancel,
 }) => {
   const isHeroS =
-    !_.isEmpty(data?.abilities_hero_s) &&
-    !_.includes(data?.abilities_hero_s, 0);
+    !_.isEmpty(data?.abilitiesHeroS) &&
+    !_.includes(data?.abilitiesHeroS, 0);
   const { isShowing, toggle } = useModal();
   const [status, setStatus] = useState("sell");
   const [message, setMessage] = useState("");
@@ -77,7 +79,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
   const { isSellable, minPrice } = Bhero[data.rarity];
 
   const isThroughThe7DayRule =
-    block !== null && (data.nft_block_number || 0) < block - cooldownByBlockNumber;
+    block !== null && (data.nftBlockNumber || 0) < block - cooldownByBlockNumber;
   const shieldData = data.shieldData ?? null;
   const staked = Math.floor(shieldData?.currentStakeBcoin || 0);
   const stakedSen = Math.floor(shieldData?.currentStakeSen || 0);
@@ -95,7 +97,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
   };
 
   const confirm = async () => {
-    let block_sell = new Date(data.block_timestamp || "");
+    let block_sell = new Date(data.blockTimestamp || "");
     block_sell.setMinutes(block_sell.getMinutes() + 5);
     let current = new Date();
     let seconds = (block_sell.getTime() - current.getTime()) / 1000;
@@ -114,7 +116,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
     toggle();
     setLoading(true);
     try {
-      await getOrder(data.token_id!);
+      await getOrder(data.tokenId!);
     } catch (error) {
       setStatus("error");
       setMessage("Not found order");
@@ -123,7 +125,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
       return;
     }
     try {
-      await cancelOrder(data.token_id!);
+      await cancelOrder(data.tokenId!);
       setTimeout(() => {
         setStatus("cancel-success");
         setMessage("Successfully canceled sale");
@@ -151,8 +153,9 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
       </div>
       <div className="info">
         <div className="level">Level {data.level}</div>
-        <Tag>#{cancel ? data.token_id : data.id}</Tag>
+        <Tag>#{cancel ? data.tokenId : data.id}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)} </Tag>
+        <SuspiciousBadge flag={data.suspicious} />
       </div>
       <div>
         <div className="flex-skill">
@@ -161,7 +164,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
             <div className="skill">
               <IconSkill src="/icons/skill2.webp" />
               <span>
-                {data.bomb_power}
+                {data.bombPower}
                 {addPower !== 0 && <em className="add">(+{addPower})</em>}
               </span>
             </div>
@@ -184,14 +187,14 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
             <div className="title">BOMB NUM</div>
             <div className="skill">
               <IconSkill src="/icons/skill3.webp" />
-              <span>{data.bomb_count}</span>
+              <span>{data.bombCount}</span>
             </div>
           </div>
           <div>
             <div className="title">RANGE</div>
             <div className="skill">
               <IconSkill src="/icons/skill4.webp" />
-              <span>{data.bomb_range}</span>
+              <span>{data.bombRange}</span>
             </div>
           </div>
           {(isHeroS || shieldData?.heroType === HeroType.lStake) && (
@@ -292,7 +295,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
       {status === "sell" && (
         <SellModal
           setStatus={updateStatus}
-          data={{ ...data, id: data.id || data.token_id || 0 }}
+          data={{ ...data, id: data.id || data.tokenId || 0 }}
           hide={toggle}
           minPrice={minPrice}
           name={"BHero"}
@@ -338,7 +341,7 @@ const BHeroFullWidth: React.FC<InventoryBheroProps> = ({
       )}
       {status === "cancel-success" && (
         <Success
-          id={data.token_id || data.ref_id || data.id}
+          id={data.tokenId || data.ref_id || data.id}
           hide={toggle}
           message={message}
           title="Cancel Bhero"
@@ -368,15 +371,17 @@ const Item = styled.div`
   width: 100%;
   align-items: center;
   padding: 1.125rem 1.313rem;
-  justify-content: space-around;
+  gap: 1rem;
+  min-height: 12rem;
   border: solid 1px #343849;
   background-color: #191b24;
   .info {
-    width: 10rem;
+    width: 12rem;
+    flex-shrink: 0;
   }
 
   .icon-hero {
-    margin-right: 3rem;
+    flex-shrink: 0;
   }
   .uppercase {
     text-transform: uppercase;
@@ -390,21 +395,14 @@ const Item = styled.div`
   }
   .flex-skill {
     display: flex;
+    flex-wrap: wrap;
     justify-content: left;
-    width: 40rem;
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
     & > div {
-      width: 5rem;
+      min-width: 4rem;
       &.power {
-        min-width: 6rem !important;
-      }
-    }
-
-    @media (min-width: 1440px) {
-      & > div {
-        min-width: 6rem;
-      }
-      & > .wrap-shield {
-        width: 6rem;
+        min-width: 5rem !important;
       }
     }
 
@@ -422,7 +420,11 @@ const Item = styled.div`
   }
   .skill-item {
     display: flex;
-    width: 24rem;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    justify-content: flex-end;
+    flex: 1 1 0;
+    min-width: 0;
     img {
       margin-right: 0.3rem;
     }
@@ -448,6 +450,7 @@ const Item = styled.div`
   .action {
     display: flex;
     width: 14rem;
+    flex-shrink: 0;
     justify-content: right;
     .top {
       display: flex;

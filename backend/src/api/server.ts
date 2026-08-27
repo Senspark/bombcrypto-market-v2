@@ -21,6 +21,8 @@ import {createHeroTransactionRepository} from '@/repositories/hero-transaction.r
 import {createHouseTransactionRepository} from '@/repositories/house-transaction.repository';
 import {createWalletHistoryRepository} from '@/repositories/wallet-history.repository';
 import {createAdminRepository} from '@/repositories/block-tracking.repository';
+import {createSuspiciousRepository} from '@/repositories/suspicious.repository';
+import {createSuspiciousRegistry} from '@/usecases/suspicious-registry';
 
 // Server dependencies
 export interface ServerDeps {
@@ -153,6 +155,10 @@ export class ApiServer {
         const houseTxRepo = createHouseTransactionRepository(db, logger);
         const walletHistoryRepo = createWalletHistoryRepository(db, logger);
         const adminRepo = createAdminRepository(db, logger);
+        const suspiciousRepo = createSuspiciousRepository(db, logger);
+
+        // Suspicious hero/wallet lists, kept in memory and reloaded every minute
+        const suspiciousRegistry = createSuspiciousRegistry(suspiciousRepo, 60, logger);
 
         // API routes
         this.app.use(
@@ -170,10 +176,14 @@ export class ApiServer {
             '/transactions/heroes',
             createHeroRoutes({
                 heroTxRepo,
+                suspiciousRegistry,
                 cache: cacheSet.listCache,
                 searchIdTracker: this.searchIdTracker,
                 blockchainApi: this.blockchainApi,
                 contractAddress: config.server.bheroContractAddress,
+                marketContractAddress: config.server.bheroMarketContractAddress,
+                bcoinContractAddress: config.server.bcoinContractAddress,
+                senContractAddress: config.server.senContractAddress,
                 redis: this.deps.redis,
                 network: config.server.network,
                 logger,
@@ -188,6 +198,9 @@ export class ApiServer {
                 searchIdTracker: this.searchIdTracker,
                 blockchainApi: this.blockchainApi,
                 contractAddress: config.server.bhouseContractAddress,
+                marketContractAddress: config.server.bhouseMarketContractAddress,
+                bcoinContractAddress: config.server.bcoinContractAddress,
+                senContractAddress: config.server.senContractAddress,
                 logger,
             })
         );
@@ -197,6 +210,8 @@ export class ApiServer {
             createAdminRoutes(
                 {
                     adminRepo,
+                    suspiciousRepo,
+                    suspiciousRegistry,
                     cache: cacheSet.listCache,
                     logger,
                 },

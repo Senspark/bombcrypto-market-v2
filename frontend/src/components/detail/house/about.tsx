@@ -56,12 +56,12 @@ export const About: React.FC<AboutProps> = ({ data }) => {
       <Title>About</Title>
       <Content>
         <h4>OWNER</h4>
-        <p>{data.seller_wallet_address}</p>
+        <p>{data.sellerWalletAddress}</p>
         <h4>PROFILE LINK</h4>
         <div>
           <LinkProfile>
-            <Copy data={origin + `/market/bhouse/${data.token_id}`} />
-            <span>{data.token_id}</span>
+            <Copy data={origin + `/market/bhouse/${data.tokenId}`} />
+            <span>{data.tokenId}</span>
           </LinkProfile>
         </div>
       </Content>

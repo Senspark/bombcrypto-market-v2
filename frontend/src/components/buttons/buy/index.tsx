@@ -8,6 +8,8 @@ import BuySuccess from "../../modal/buy-success";
 import axios from "axios";
 import { NETWORK, SmartContracts } from "../../../utils/config";
 import { getAPI } from "../../../utils/helper";
+import SuspiciousConfirm from "../../modal/suspicious-confirm";
+import { SuspiciousFlag } from "../../../types/hero";
 
 const ButtonBuy = styled.div`
   padding: 0.938rem 2.125rem;
@@ -32,8 +34,33 @@ const ButtonBuy = styled.div`
   }
 `;
 
+const friendlyBuyError = (error: any): string => {
+  const raw: string =
+    error?.reason ||
+    error?.shortMessage ||
+    error?.info?.error?.message ||
+    error?.data?.message ||
+    error?.message ||
+    "";
+  const lc = raw.toLowerCase();
+  if (lc.includes("invalid token id"))
+    return "This hero no longer exists (it has been burned). The listing is no longer valid.";
+  if (lc.includes("order not existed"))
+    return "This order no longer exists. It may have been sold or cancelled.";
+  if (lc.includes("price is not match"))
+    return "The price has changed. Please refresh the page and try again.";
+  if (lc.includes("approveforall"))
+    return "The seller has not approved the marketplace for this NFT.";
+  if (lc.includes("insufficient") || lc.includes("transfer amount exceeds balance"))
+    return "You don't have enough balance to complete this purchase.";
+  if (error?.code === "ACTION_REJECTED" || lc.includes("user rejected"))
+    return "You rejected the transaction.";
+  return raw || "Buy order failed";
+};
+
 interface HeroData {
   isToken?: string;
+  suspicious?: SuspiciousFlag | null;
   seller_wallet_address?: string;
   rarity?: number;
   abilities?: number[];
@@ -54,7 +81,9 @@ interface ButtonProps {
 
 const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
   const { isShowing, toggle } = useModal();
+  const [confirming, setConfirming] = useState(false);
   const [status, setStatus] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const { auth, clear, network } = useAccount();
   let isUsePolygon = network === NETWORK.POLYGON;
   let _bcoin =
@@ -101,8 +130,22 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
     isAllow = true;
   }
 
-  const onClick = async (item: HeroData) => {
+  // Heroes on the suspicious list need an explicit acknowledgement first
+  const onClick = (item: HeroData) => {
     if (!isAllow) return;
+    if (item?.suspicious) {
+      setConfirming(true);
+      return;
+    }
+    proceedBuy(item);
+  };
+
+  const confirmSuspicious = () => {
+    setConfirming(false);
+    proceedBuy(data);
+  };
+
+  const proceedBuy = async (item: HeroData) => {
     if (
       item?.isToken == senContract.address &&
       _sen !== false &&
@@ -145,6 +188,17 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
       await getOrder(id);
     } catch (error) {
       setStatus("notfound");
+      toggle();
+      setLoading(false);
+      return;
+    }
+
+    const heroStillExists = await wasHeroBurn(id);
+    if (!heroStillExists) {
+      setErrorMessage(
+        "This hero no longer exists (it has been burned). The listing is no longer valid."
+      );
+      setStatus("failed");
       toggle();
       setLoading(false);
       return;
@@ -200,6 +254,8 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
       await updateBcoin();
       setStatus("success");
     } catch (error) {
+      console.error("buyHero failed:", error);
+      setErrorMessage(friendlyBuyError(error));
       setStatus("failed");
     }
     toggle();
@@ -213,6 +269,15 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
       >
         Buy
       </ButtonBuy>
+      {confirming && data.suspicious && (
+        <SuspiciousConfirm
+          flag={data.suspicious}
+          tokenId={id}
+          hide={() => setConfirming(false)}
+          confirm={confirmSuspicious}
+          isShowing={confirming}
+        />
+      )}
       {status == "notfound" && (
         <Error
           message="The assets is no longer on the market because it has been sold or the seller has canceled the sale"
@@ -274,7 +339,7 @@ const Button: React.FC<ButtonProps> = ({ data, price, id, fetchData }) => {
       )}
       {status == "failed" && (
         <Error
-          message="Buy order failed"
+          message={errorMessage || "Buy order failed"}
           hide={toggle}
           id={id}
           reload={clear.current}

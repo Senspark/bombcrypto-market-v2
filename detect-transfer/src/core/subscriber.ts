@@ -108,15 +108,13 @@ export class Subscriber {
     }
 
     private async verifyOrder(record: OrderRecord): Promise<void> {
-        const {id: orderDbId, tokenId, sellerWalletAddress} = record;
-
-        this.logger.info(`Processing DB ID: ${orderDbId} | Token: ${tokenId}`);
+        const {id: orderDbId, tokenId} = record;
+        const tag = `DB ${orderDbId} | token ${tokenId}`;
 
         try {
             // Check order existence
             let orderData: [string, string, string, string, string];
             try {
-                this.logger.info(`Checking order for token ${tokenId}`);
                 orderData = await this.api.callContract<[string, string, string, string, string]>(
                     this.marketAddress,
                     GET_ORDER_V2_ABI,
@@ -126,6 +124,8 @@ export class Subscriber {
             } catch (e) {
                 if (String(e).includes('order not existed')) {
                     await this.markDeleted(orderDbId, tokenId, 'order not existed');
+                } else {
+                    this.logger.warn(`SKIP | ${tag} | getOrderV2 failed: ${e}`);
                 }
                 return;
             }
@@ -133,7 +133,6 @@ export class Subscriber {
             // Check owner
             let ownerData: string;
             try {
-                this.logger.info(`Checking owner for token ${tokenId}`);
                 ownerData = await this.api.callContract<string>(
                     this.erc721Address,
                     OWNER_OF_ABI,
@@ -142,7 +141,9 @@ export class Subscriber {
                 );
             } catch (e) {
                 if (String(e).includes('invalid token ID')) {
-                    await this.markDeleted(orderDbId, tokenId, 'Token not found or burned');
+                    await this.markDeleted(orderDbId, tokenId, 'token burned');
+                } else {
+                    this.logger.warn(`SKIP | ${tag} | ownerOf failed: ${e}`);
                 }
                 return;
             }
@@ -150,17 +151,12 @@ export class Subscriber {
             // Verify Seller == Owner
             const seller = orderData[1];
             if (seller.toLowerCase() !== ownerData.toLowerCase()) {
-                await this.markDeleted(
-                    orderDbId,
-                    tokenId,
-                    `Owner (${ownerData}) and Seller (${seller}) mismatch`
-                );
+                await this.markDeleted(orderDbId, tokenId, `owner/seller mismatch (owner=${ownerData}, seller=${seller})`);
                 return;
             }
 
             // Check approval
             try {
-                this.logger.info(`Checking approval for token ${tokenId}`);
                 const approved = await this.api.callContract<boolean>(
                     this.erc721Address,
                     IS_APPROVED_FOR_ALL_ABI,
@@ -169,17 +165,22 @@ export class Subscriber {
                 );
 
                 if (!approved) {
-                    await this.markDeleted(orderDbId, tokenId, 'Not approved For All');
+                    await this.markDeleted(orderDbId, tokenId, 'not approvedForAll');
+                    return;
                 }
             } catch (e) {
-                this.logger.error(`error when checking approved: ${e} token_id: ${tokenId}`);
+                this.logger.warn(`SKIP | ${tag} | isApprovedForAll failed: ${e}`);
+                return;
             }
+
+            // Passed every check → listing is valid, keep it
+            this.logger.info(`OK | ${tag} | listing valid`);
 
             if (this.typeStr === 'HERO' && this.shieldApi) {
                 await this.redis.addToSet(this.redisKeyShieldFetch, tokenId.toString());
             }
         } catch (e) {
-            this.logger.error(`Unexpected error verifying order ${orderDbId}: ${e}`);
+            this.logger.error(`ERROR | ${tag} | unexpected: ${e}`);
         }
     }
 
@@ -188,7 +189,7 @@ export class Subscriber {
             `UPDATE ${this.dbSearchPath}.${this.dbTable} SET deleted = true WHERE id = $1`,
             [orderDbId]
         );
-        this.logger.info(`deleted: ${tokenId} (DB ID: ${orderDbId}) reason: ${reason}`);
+        this.logger.info(`DELETED | DB ${orderDbId} | token ${tokenId} | ${reason}`);
     }
 
     async processShieldFetchQueue(): Promise<number> {
@@ -248,7 +249,6 @@ export class Subscriber {
                 const inCooldown = await this.redis.exists(cooldownKey);
 
                 if (inCooldown) {
-                    this.logger.info(`Skipping ${searchId}, in cooldown.`);
                     continue;
                 }
 
@@ -282,8 +282,6 @@ export class Subscriber {
 
                     if (record.status === 'listing' && !record.deleted) {
                         await this.verifyOrder(record);
-                    } else {
-                        this.logger.info(`Skipping ${searchId}: Status ${record.status}, Deleted ${record.deleted}`);
                     }
                 } else {
                     this.logger.warn(`Record ${searchId} not found in DB`);

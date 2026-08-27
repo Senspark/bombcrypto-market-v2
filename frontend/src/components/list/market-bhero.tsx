@@ -2,24 +2,26 @@ import React from "react";
 import styled from "styled-components";
 import BHeroCard from "../cards/market-bhero-card";
 import BHeroCardHorizonal from "../cards/market-bhero-list";
+import { SuspiciousFlag } from "../../types/hero";
 
 interface HeroData {
   id: string | number;
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   level: number;
-  bomb_power: number;
+  bombPower: number;
   speed: number;
   stamina: number;
-  bomb_count: number;
-  bomb_range: number;
+  bombCount: number;
+  bombRange: number;
   abilities?: number[];
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   amount: string | number | bigint;
   isToken?: string;
   skin: number;
   color: number;
-  seller_wallet_address?: string;
+  sellerWalletAddress?: string;
+  suspicious?: SuspiciousFlag | null;
 }
 
 interface MarketBheroListProps {

@@ -5,7 +5,7 @@ import { Modal } from "antd";
 
 interface SellSuccessData {
   ref_id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   id?: string | number;
   [key: string]: any;
 }
@@ -30,7 +30,7 @@ const SellSuccess: React.FC<SellSuccessProps> = ({ data, hide, reload, title, is
       <div className="head-modal">
         <img src="/icons/sell.webp" alt="" />
         <div className="agency">
-          {title} <span>#{data.ref_id || data.token_id || data.id}</span>
+          {title} <span>#{data.ref_id || data.tokenId || data.id}</span>
         </div>
         <div className="icon" onClick={hide}>
           <Close />

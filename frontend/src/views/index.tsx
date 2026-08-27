@@ -6,16 +6,18 @@ import BheroSold from "../components/recently/bhero-sold";
 import styled from "styled-components";
 
 const WrapRecently = styled(Container)`
+  flex-wrap: wrap;
   gap: 9rem;
   min-height: 80vh;
   & > div {
-    flex: 0 0 calc(50% - 4.5rem);
+    flex: 1 1 40rem;
+    min-width: 0;
   }
   @media (max-width: 1440px) {
     gap: 6rem;
-    & > div {
-      flex: 0 0 calc(50% - 3rem);
-    }
+  }
+  @media (max-width: 1024px) {
+    gap: 2rem;
   }
 `;
 

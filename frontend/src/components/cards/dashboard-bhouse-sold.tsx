@@ -4,10 +4,10 @@ import { Tag } from "../common/style";
 import { bcoinFormat, mapTag, mapHouse, minAddress } from "../../utils/helper";
 
 interface HouseData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
-  buyer_wallet_address?: string;
-  seller_wallet_address?: string;
+  buyerWalletAddress?: string;
+  sellerWalletAddress?: string;
   amount: string | number | bigint;
 }
 
@@ -25,18 +25,18 @@ const BHeroFullWidth: React.FC<DashboardBhouseSoldProps> = ({ data }) => {
         />
       </div>
       <div className="info">
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapHouse[data.rarity]}</Tag>
       </div>
       <div className="buyer">
         <p className="title mavenpro">BUYER</p>
         <h3 className="name">User Name</h3>
-        <p className="address">( {minAddress(data.buyer_wallet_address)})</p>
+        <p className="address">( {minAddress(data.buyerWalletAddress)})</p>
       </div>
       <div className="buyer">
         <p className="title mavenpro">SELLER</p>
         <h3 className="name">User Name</h3>
-        <p className="address">({minAddress(data.seller_wallet_address)})</p>
+        <p className="address">({minAddress(data.sellerWalletAddress)})</p>
       </div>
       <div className="action">
         <div className="top">
