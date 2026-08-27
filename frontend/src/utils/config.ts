@@ -98,16 +98,9 @@ export const SmartContracts: SmartContractsType = {
   },
 };
 
-// Use local proxy to bypass CORS when testing production API on localhost
-const useLocalProxy = import.meta.env.DEV && isProduction;
-// Use local API server (set VITE_USE_LOCAL=true to enable)
-const useLocalApi = import.meta.env.VITE_USE_LOCAL === 'true';
-// Use new backend with same-origin API routes (set VITE_USE_NEW_BACKEND=true to enable)
-const useNewBackend = import.meta.env.VITE_USE_NEW_BACKEND === 'true';
-
 export const rest_api: Record<string, string> = {
-  BNB: useNewBackend ? '/api/bsc/' : (useLocalApi ? '/local-api/api/bsc/' : (useLocalProxy ? '/proxy-bnb/' : (isProduction ? address_bnb_prod.api : address_bnb_test.api))),
-  Polygon: useNewBackend ? '/api/polygon/' : (useLocalApi ? '/local-api/api/polygon/' : (useLocalProxy ? '/proxy-polygon/' : (isProduction ? address_polygon_prod.api : address_polygon_test.api))),
+  BNB: '/api/bsc/',
+  Polygon: '/api/polygon/',
 };
 
 export const RPC_BSC: Record<string, string> = {
@@ -129,6 +122,12 @@ export const Bhero: Record<number, BheroConfig> = {
   3: { isSellable: true, minPrice: 30 },
   4: { isSellable: true, minPrice: 50 },
   5: { isSellable: true, minPrice: 70 },
+  // Rarity 6-9 minPrice are template values (linear +20 step from rarity 5).
+  // Designer review pending — see PHASE_3_REPORT.md §"Template values for designer review".
+  6: { isSellable: true, minPrice: 90 },
+  7: { isSellable: true, minPrice: 110 },
+  8: { isSellable: true, minPrice: 130 },
+  9: { isSellable: true, minPrice: 150 },
 };
 
 export const Bhouse: Record<number, BheroConfig> = {
@@ -140,7 +139,7 @@ export const Bhouse: Record<number, BheroConfig> = {
   5: { isSellable: true, minPrice: 540 },
 };
 
-export const fee = 15;
+export const fee = 10;
 
 export const IMAGE_TOKEN_SHOW: Record<string, string> = {
   [SmartContracts.sen.address]: "/icons/sen_token.png",

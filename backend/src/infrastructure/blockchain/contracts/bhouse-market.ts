@@ -18,7 +18,32 @@ const GET_TOKEN_PAY_LIST_ABI = [
     },
 ];
 
+const GET_ORDER_V2_ABI = [
+    {
+        inputs: [{internalType: 'uint256', name: '_tokenId', type: 'uint256'}],
+        name: 'getOrderV2',
+        outputs: [
+            {internalType: 'uint256', name: 'tokenDetail', type: 'uint256'},
+            {internalType: 'address', name: 'seller', type: 'address'},
+            {internalType: 'uint256', name: 'price', type: 'uint256'},
+            {internalType: 'uint256', name: 'startedAt', type: 'uint256'},
+            {internalType: 'address', name: 'tokenAddress', type: 'address'},
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+];
+
 export type {MarketOrder, MarketOrderV2};
+
+// On-chain order as returned by BlockChainCenterApi (numeric fields serialized to strings)
+export interface RawMarketOrderV2 {
+    tokenDetail: string;
+    seller: string;
+    price: string;
+    startedAt: string;
+    tokenAddress: string;
+}
 
 /**
  * BHouseMarket contract wrapper
@@ -163,6 +188,26 @@ export class BHouseMarketService {
             'getTokenPayList',
             [tokenIds.map(id => id.toString())],
         );
+    }
+
+    /**
+     * Get on-chain order details (reverts if no active order).
+     * Tuple values arrive as a positional string array from the API.
+     */
+    async getOrderV2(tokenId: bigint): Promise<RawMarketOrderV2> {
+        const r = await this.client.callContract<string[]>(
+            this.contractAddress,
+            GET_ORDER_V2_ABI,
+            'getOrderV2',
+            [tokenId.toString()],
+        );
+        return {
+            tokenDetail: r[0],
+            seller: r[1],
+            price: r[2],
+            startedAt: r[3],
+            tokenAddress: r[4],
+        };
     }
 }
 

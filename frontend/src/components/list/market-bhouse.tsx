@@ -4,10 +4,10 @@ import BhouseCard from "../cards/market-bhouse";
 
 interface HouseData {
   id: string | number;
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   capacity: number;
-  seller_wallet_address: string;
+  sellerWalletAddress: string;
   amount: string | number | bigint;
   isToken?: string;
 }

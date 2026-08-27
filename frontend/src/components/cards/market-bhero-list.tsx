@@ -14,25 +14,27 @@ import {
 import { HeroIcon } from "../hero";
 import _ from "lodash";
 import { IMAGE_TOKEN_SHOW, HeroType } from "../../utils/config";
-import { ShieldOutput } from "../../types/hero";
+import { ShieldOutput, SuspiciousFlag } from "../../types/hero";
+import { SuspiciousBadge } from "../common/suspicious";
 
 interface HeroData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   level: number;
-  bomb_power: number;
+  bombPower: number;
   speed: number;
   stamina: number;
-  bomb_count: number;
-  bomb_range: number;
+  bombCount: number;
+  bombRange: number;
   abilities?: number[];
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   amount: string | number | bigint;
   isToken?: string;
   skin: number;
   color: number;
-  seller_wallet_address?: string;
+  sellerWalletAddress?: string;
   shieldData?: ShieldOutput | null;
+  suspicious?: SuspiciousFlag | null;
 }
 
 interface MarketBheroListProps {
@@ -42,8 +44,8 @@ interface MarketBheroListProps {
 
 const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
   const isHeroS =
-    !_.isEmpty(data?.abilities_hero_s) &&
-    !_.includes(data?.abilities_hero_s, 0);
+    !_.isEmpty(data?.abilitiesHeroS) &&
+    !_.includes(data?.abilitiesHeroS, 0);
   const abilities = data.abilities || [];
   const addPower = levelToPower[data.level];
   const shieldData = data.shieldData ?? null;
@@ -51,24 +53,25 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
   const stakedSen = Math.floor(shieldData?.currentStakeSen || 0);
 
   return (
-    <Item>
+    <Item className={data.suspicious ? "suspicious" : ""}>
       <HeroIcon
         data={data}
         heroType={isHeroS ? HeroType.s : shieldData?.heroType as any}
       />
       <div className="info">
         <div className="level">Level {data.level}</div>
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)}</Tag>
+        <SuspiciousBadge flag={data.suspicious} />
       </div>
-      <div style={{ width: "35rem" }}>
+      <div className="info-skill">
         <div className="flex-skill">
           <div className="power">
             <div className="title">POWER</div>
             <div className="skill">
               <IconSkill src="/icons/skill2.webp" />
               <span>
-                {data.bomb_power}
+                {data.bombPower}
                 {addPower !== 0 && <em className="add">(+{addPower})</em>}
               </span>
             </div>
@@ -92,14 +95,14 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
             <div className="skill">
               <IconSkill src="/icons/skill3.webp" />
 
-              <span>{data.bomb_count}</span>
+              <span>{data.bombCount}</span>
             </div>
           </div>
           <div>
             <div className="title">RANGE</div>
             <div className="skill">
               <IconSkill src="/icons/skill4.webp" />
-              <span>{data.bomb_range}</span>
+              <span>{data.bombRange}</span>
             </div>
           </div>
           {(isHeroS || shieldData?.heroType === HeroType.lStake) && (
@@ -141,7 +144,7 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
           </div>
         </div>
       </div>
-      <div className="skill-item" style={{ width: "25rem" }}>
+      <div className="skill-item">
         {abilities
           .sort(function (a, b) {
             return a - b;
@@ -170,11 +173,11 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
           <ButtonBuy
             data={data}
             price={data.amount}
-            id={data.token_id}
+            id={data.tokenId}
             fetchData={() => {}}
           />
           <div className="link">
-            <LinkProfile type="bhero" id={data.token_id} />
+            <LinkProfile type="bhero" id={data.tokenId} />
           </div>
         </div>
       </div>
@@ -186,19 +189,21 @@ const Item = styled.div`
   display: flex;
   width: 100%;
   align-items: center;
+  &.suspicious {
+    border-color: #ff0759;
+  }
   padding: 1.125rem 1.313rem;
-  justify-content: space-between;
+  gap: 1rem;
+  min-height: 12rem;
   border: solid 1px #343849;
   background-color: #191b24;
   .info {
-    width: 8rem;
+    width: 12rem;
+    flex-shrink: 0;
   }
 
   .icon-hero {
-    img {
-      width: 4.875rem;
-      height: 6.313rem;
-    }
+    flex-shrink: 0;
   }
   .text {
     margin-top: 7px;
@@ -209,20 +214,13 @@ const Item = styled.div`
   }
   .flex-skill {
     display: flex;
-    min-width: 19.313rem;
+    flex-wrap: wrap;
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
     & > div {
-      width: 5rem;
+      min-width: 4rem;
       &.power {
-        min-width: 6rem !important;
-      }
-    }
-
-    @media (min-width: 1440px) {
-      & > div {
-        width: 5rem;
-      }
-      & > .wrap-shield {
-        width: 5rem;
+        min-width: 5rem !important;
       }
     }
 
@@ -235,8 +233,11 @@ const Item = styled.div`
   }
   .skill-item {
     display: flex;
-    /* justify-content: space-between; */
-    min-width: 20rem;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    justify-content: flex-end;
+    flex: 1 1 0;
+    min-width: 0;
     img {
       margin-right: 0.75rem;
     }
@@ -269,6 +270,7 @@ const Item = styled.div`
     display: flex;
     justify-content: space-between;
     width: 14rem;
+    flex-shrink: 0;
     .top {
       display: flex;
       align-items: center;

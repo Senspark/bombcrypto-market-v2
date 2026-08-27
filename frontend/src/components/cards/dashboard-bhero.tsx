@@ -17,21 +17,21 @@ import _ from "lodash";
 import { ShieldOutput } from "../../types/hero";
 
 interface HeroData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   level: number;
-  bomb_power: number;
+  bombPower: number;
   speed: number;
   stamina: number;
-  bomb_count: number;
-  bomb_range: number;
+  bombCount: number;
+  bombRange: number;
   abilities?: number[];
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   amount: string | number | bigint;
   isToken?: string;
   skin: number;
   color: number;
-  seller_wallet_address?: string;
+  sellerWalletAddress?: string;
   shieldData?: ShieldOutput | null;
 }
 
@@ -41,8 +41,8 @@ interface DashboardBheroProps {
 
 const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
   const isHeroS =
-    !_.isEmpty(data?.abilities_hero_s) &&
-    !_.includes(data?.abilities_hero_s, 0);
+    !_.isEmpty(data?.abilitiesHeroS) &&
+    !_.includes(data?.abilitiesHeroS, 0);
   const abilities = data.abilities || [];
   const addPower = levelToPower[data.level];
   const shieldData = data.shieldData ?? null;
@@ -57,19 +57,22 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
       />
       <div className="info">
         <div className="level">Level {data.level}</div>
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={"uppercase " + mapTag[data.rarity]}>
           {mapRarity(data.rarity)}{" "}
         </Tag>
       </div>
       <div className="info-skill">
         <div className="skill-item">
-          {abilities.map((element) => (
-            <IconItem
-              key={element}
-              src={"/skill/" + skills[element] + ".png"}
-            />
-          ))}
+          {abilities
+            .slice()
+            .sort((a, b) => a - b)
+            .map((element) => (
+              <IconItem
+                key={element}
+                src={"/skill/" + skills[element] + ".png"}
+              />
+            ))}
           {(isHeroS || shieldData?.heroType === HeroType.lStake) && (
             <Tooltip
               title={
@@ -94,7 +97,7 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
           <div className="skill">
             <IconSkill src="/icons/skill2.webp" />
             <span>
-              {data.bomb_power}
+              {data.bombPower}
               {addPower !== 0 && <em className="add">(+{addPower})</em>}
             </span>
           </div>
@@ -108,11 +111,11 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
           </div>
           <div className="skill">
             <IconSkill src="/icons/skill3.webp" />
-            <span>{data.bomb_count}</span>
+            <span>{data.bombCount}</span>
           </div>
           <div className="skill">
             <IconSkill src="/icons/skill4.webp" />
-            <span>{data.bomb_range}</span>
+            <span>{data.bombRange}</span>
           </div>
         </div>
         <div>
@@ -143,7 +146,7 @@ const BHeroFullWidth: React.FC<DashboardBheroProps> = ({ data }) => {
         <Button
           data={data}
           price={data.amount}
-          id={data.token_id}
+          id={data.tokenId}
           fetchData={() => {}}
         />
       </div>
@@ -157,10 +160,12 @@ const Item = styled.div`
   width: 100%;
   align-items: center;
   padding: 0.5rem 1.313rem;
-  height: 12rem;
-  justify-content: space-between;
+  min-height: 12rem;
+  justify-content: flex-start;
+  gap: 1rem;
   .info {
-    min-width: 6.375rem;
+    width: 12rem;
+    flex-shrink: 0;
   }
   .text {
     font-size: 1.375rem;
@@ -168,20 +173,24 @@ const Item = styled.div`
     color: #a6afd7;
   }
   .info-skill {
-    min-width: 19.5rem;
+    flex: 1 1 0;
+    min-width: 0;
   }
   .icon-hero {
-    img {
-      width: 4.875rem;
-      height: 6.313rem;
-    }
+    flex-shrink: 0;
   }
   .flex-skill {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
   }
   .skill-item {
     display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    min-height: 5.5rem;
     img {
       margin-right: 0.75rem;
     }
@@ -199,6 +208,8 @@ const Item = styled.div`
     }
   }
   .action {
+    flex-shrink: 0;
+    margin-left: auto;
     .top {
       display: flex;
       align-items: center;

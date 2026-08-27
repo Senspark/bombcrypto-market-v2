@@ -8,6 +8,7 @@ import {
   getBalance,
   onListenNetworkChange,
   TokenName,
+  TokenNameType,
 } from "../components/Service/web3";
 import Web3Modal from "web3modal";
 import { useAccount } from "./account";
@@ -287,19 +288,20 @@ function Contract_({ children, type }: ContractProviderProps): JSX.Element {
     bcoinMatic: string | number;
     senMatic: string | number;
   }> => {
-    let bcoinVal: string | number = 0;
-    let bcoinMatic: string | number = 0;
-    let senVal: string | number = 0;
-    let senMatic: string | number = 0;
-    try {
-      bcoinVal = await getBalance(TokenName.Bcoin);
-      bcoinMatic = await getBalance(TokenName.Bomb);
-      senVal = await getBalance(TokenName.Sen);
-      senMatic = await getBalance(TokenName.SenPolygon);
-      return { bcoin: bcoinVal, sen: senVal, bcoinMatic, senMatic };
-    } catch (error) {
-      console.log(error);
-    }
+    const safe = async (token: TokenNameType): Promise<string | number> => {
+      try {
+        return await getBalance(token);
+      } catch (error) {
+        console.warn(`getBalance(${token}) failed:`, error);
+        return 0;
+      }
+    };
+    const [bcoinVal, bcoinMatic, senVal, senMatic] = await Promise.all([
+      safe(TokenName.Bcoin),
+      safe(TokenName.Bomb),
+      safe(TokenName.Sen),
+      safe(TokenName.SenPolygon),
+    ]);
     return { bcoin: bcoinVal, sen: senVal, bcoinMatic, senMatic };
   };
 

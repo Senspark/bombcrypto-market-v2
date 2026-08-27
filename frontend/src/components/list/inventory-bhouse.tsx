@@ -6,7 +6,7 @@ import Pagination from "../layouts/Pagination";
 
 interface HouseData {
   id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   rarity: number;
   capacity: number;
   amount?: string | number | bigint;
@@ -73,7 +73,7 @@ const Inventory: React.FC<InventoryProps> = React.memo(
     }, []);
 
     const data_not_sell = data.filter((element) => {
-      const item = own.find((e) => e.token_id === element.id);
+      const item = own.find((e) => Number(e.tokenId) === Number(element.id));
       return !item;
     });
 
@@ -119,7 +119,7 @@ const Inventory: React.FC<InventoryProps> = React.memo(
               isApprove={isApprove}
               approve={approve}
               data={element}
-              cancel={element.token_id}
+              cancel={element.tokenId}
             />
           ))}
         </List>

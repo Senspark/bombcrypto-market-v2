@@ -7,23 +7,23 @@ import _ from "lodash";
 
 interface HeroData {
   id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   rarity: number;
   level: number;
-  bomb_power: number;
+  bombPower: number;
   speed: number;
   stamina: number;
-  bomb_count: number;
-  bomb_range: number;
+  bombCount: number;
+  bombRange: number;
   abilities?: number[];
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   amount?: string | number | bigint;
   isToken?: string;
   skin: number;
   color: number;
   price?: number;
-  nft_block_number?: number;
-  block_timestamp?: string;
+  nftBlockNumber?: number;
+  blockTimestamp?: string;
 }
 
 interface InventoryParams {
@@ -76,7 +76,7 @@ const Inventory: React.FC<InventoryProps> = React.memo(
     }, []);
 
     const data_not_sell = data.filter((element) => {
-      const item = own.find((e) => e.token_id === element.id);
+      const item = own.find((e) => Number(e.tokenId) === Number(element.id));
       return !item;
     });
 
@@ -107,8 +107,8 @@ const Inventory: React.FC<InventoryProps> = React.memo(
 
     if (params.filter === "s-hero") {
       list = [
-        ...own.filter((item) => !_.isEmpty(item.abilities_hero_s)),
-        ...data_not_sell.filter((item) => !_.isEmpty(item.abilities_hero_s)),
+        ...own.filter((item) => !_.isEmpty(item.abilitiesHeroS)),
+        ...data_not_sell.filter((item) => !_.isEmpty(item.abilitiesHeroS)),
       ];
     }
 
@@ -125,11 +125,11 @@ const Inventory: React.FC<InventoryProps> = React.memo(
         <List>
           {dataShow.map((element, index) => (
             <Bhero
-              key={`${element.id || element.token_id || index}`}
+              key={`${element.id || element.tokenId || index}`}
               isApprove={isApprove}
               approve={approve}
               data={element}
-              cancel={element.token_id}
+              cancel={element.tokenId}
             />
           ))}
         </List>

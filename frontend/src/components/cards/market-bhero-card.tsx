@@ -4,14 +4,17 @@ import { Tag } from "../common/style";
 import { mapRarity, bcoinFormat, mapTag } from "../../utils/helper";
 import { HeroIcon } from "../hero";
 import { IMAGE_TOKEN_SHOW } from "../../utils/config";
+import { SuspiciousFlag } from "../../types/hero";
+import { SuspiciousBadge } from "../common/suspicious";
 
 interface HeroData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   amount: string | number | bigint;
   isToken?: string;
   skin: number;
   color: number;
+  suspicious?: SuspiciousFlag | null;
 }
 
 interface BHeroCardProps {
@@ -20,11 +23,12 @@ interface BHeroCardProps {
 
 const BHeroFullWidth: React.FC<BHeroCardProps> = ({ data }) => {
   return (
-    <Item>
+    <Item className={data.suspicious ? "suspicious" : ""}>
       <div className="header">
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)}</Tag>
       </div>
+      <SuspiciousBadge flag={data.suspicious} />
 
       <HeroIcon data={data} />
       <div className="footer">
@@ -47,6 +51,9 @@ const Item = styled.div`
   padding: 0.563rem 0.438rem;
   cursor: pointer;
   transition: background 0.3s ease-in-out;
+  &.suspicious {
+    border-color: #ff0759;
+  }
   &:hover {
     background: #000000;
   }

@@ -35,7 +35,7 @@ interface ListingProps {
 
 interface ListItem {
   id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   rarity?: number;
   level?: number;
   bomb_power?: number;
@@ -181,7 +181,7 @@ const Listing: React.FC<ListingProps> = ({ emit = () => {} }) => {
             </div>
           )}
           {list &&
-            list.map((element) => <Child key={element.id || element.token_id} data={element as any} />)}
+            list.map((element) => <Child key={element.id || element.tokenId} data={element as any} />)}
         </ContentTab>
       </Recently>
     </Container>

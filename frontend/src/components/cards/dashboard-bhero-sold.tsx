@@ -8,14 +8,14 @@ import _ from "lodash";
 import { ShieldOutput } from "../../types/hero";
 
 interface HeroData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   level: number;
-  buyer_wallet_address?: string;
-  seller_wallet_address?: string;
+  buyerWalletAddress?: string;
+  sellerWalletAddress?: string;
   amount: string | number | bigint;
   isToken?: string;
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   skin: number;
   color: number;
   shieldData?: ShieldOutput | null;
@@ -27,8 +27,8 @@ interface DashboardBheroSoldProps {
 
 const BHeroFullWidth: React.FC<DashboardBheroSoldProps> = ({ data }) => {
   const isHeroS =
-    !_.isEmpty(data?.abilities_hero_s) &&
-    !_.includes(data?.abilities_hero_s, 0);
+    !_.isEmpty(data?.abilitiesHeroS) &&
+    !_.includes(data?.abilitiesHeroS, 0);
   const shieldData = data.shieldData ?? null;
 
   return (
@@ -39,18 +39,18 @@ const BHeroFullWidth: React.FC<DashboardBheroSoldProps> = ({ data }) => {
       />
       <div className="info">
         <div className="level">Level {data.level}</div>
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)} </Tag>
       </div>
       <div className="buyer">
         <p className="title mavenpro">BUYER</p>
         <h3 className="name">User Name</h3>
-        <p className="address">( {minAddress(data.buyer_wallet_address)})</p>
+        <p className="address">( {minAddress(data.buyerWalletAddress)})</p>
       </div>
       <div className="buyer">
         <p className="title mavenpro">SELLER</p>
         <h3 className="name">User Name</h3>
-        <p className="address">({minAddress(data.seller_wallet_address)})</p>
+        <p className="address">({minAddress(data.sellerWalletAddress)})</p>
       </div>
       <div className="action">
         <div className="top">
@@ -69,23 +69,28 @@ const BHeroFullWidth: React.FC<DashboardBheroSoldProps> = ({ data }) => {
 const Item = styled.div`
   border-top: solid 1px #343849;
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   align-items: center;
   padding: 0.5rem 1.313rem;
-  height: 12rem;
-  justify-content: space-between;
+  min-height: 12rem;
+  gap: 1rem;
   .icon-hero {
-    img {
-      width: 4.875rem;
-      height: 6.313rem;
-    }
+    flex-shrink: 0;
   }
 
   .info {
-    width: 6rem;
+    width: 12rem;
+    flex-shrink: 0;
+  }
+  .buyer {
+    flex: 1 1 0;
+    min-width: 6rem;
   }
   .action {
     min-width: 6rem;
+    flex-shrink: 0;
+    margin-left: auto;
     .top {
       display: flex;
       align-items: center;

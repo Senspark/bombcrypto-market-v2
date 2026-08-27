@@ -97,8 +97,8 @@ interface ParamsState {
 
 interface ListItem {
   id: string;
-  token_id: number;
-  abilities_hero_s?: number[];
+  tokenId: number;
+  abilitiesHeroS?: number[];
   [key: string]: unknown;
 }
 
@@ -133,6 +133,10 @@ const Statistics: React.FC = () => {
     { label: "Epic", value: 3 },
     { label: "Legend", value: 4 },
     { label: "SP Legend", value: 5 },
+    { label: "Mega", value: 6 },
+    { label: "Super Mega", value: 7 },
+    { label: "Mystic", value: 8 },
+    { label: "Super Mystic", value: 9 },
   ];
 
   const optionsToken = [
@@ -164,15 +168,15 @@ const Statistics: React.FC = () => {
       const listing = await axios.get(
         getAPI(network) + "transactions/heroes/search?status=listing&" + result
       );
-      const { page, size, total_count, total_pages, transactions } =
+      const { page, size, totalCount, totalPages, transactions } =
         listing.data;
       const dataHeroS: number[] = [];
       transactions?.map((el: ListItem) => {
         const isHeroS =
-          !_.isEmpty(el?.abilities_hero_s) &&
-          !_.includes(el?.abilities_hero_s, 0);
+          !_.isEmpty(el?.abilitiesHeroS) &&
+          !_.includes(el?.abilitiesHeroS, 0);
         if (isHeroS) {
-          return dataHeroS.push(el?.token_id);
+          return dataHeroS.push(el?.tokenId);
         }
       });
 
@@ -182,8 +186,8 @@ const Statistics: React.FC = () => {
       setParams((state) => ({
         ...state,
         page: page,
-        total_count,
-        total_pages,
+        total_count: totalCount,
+        total_pages: totalPages,
         size,
       }));
     } catch (error) {}

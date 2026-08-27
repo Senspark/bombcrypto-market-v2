@@ -1,10 +1,9 @@
 {
-  "bcoin": "",
-  "sen": "",
-  "bhero": "",
-  "bhouse": "",
-  "bheromarket": "",
-  "bhousemarket": "",
-  "rpc": "https://data-seed-prebsc-2-s1.binance.org:8545/",
-  "api": ""
+  "bcoin": "0x648a9cf8e95c73110d28e7e2329b2d0910bd36b8",
+  "sen": "0x4B5828F31550aFe15C61D7a765D9597ad4282325",
+  "bhero": "0xC1A4C06426B4Df799E455964A20FDe866E86fbd1",
+  "bhouse": "0xB901EE87a6321ea73532C7fDF772dC9790b38c3C",
+  "bheromarket": "0x0A32cD1069cf6b4A11b79b37aFb2A13598E6E5ca",
+  "bhousemarket": "0x19E4320D81954fB1321d2e4cc5C1eA064a289aaf",
+  "rpc": "https://data-seed-prebsc-2-s1.binance.org:8545/"
 }

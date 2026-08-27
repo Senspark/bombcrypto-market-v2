@@ -1,6 +1,6 @@
 import Redis, {RedisOptions} from 'ioredis';
 import {Logger} from '@/utils/logger';
-import {heroSearchIdsKey, houseSearchIdsKey} from './redis-keys';
+import {heroSearchIdsKey, houseSearchIdsKey, cooldownKey} from './redis-keys';
 
 // Redis client interface
 export interface IRedisClient {
@@ -21,6 +21,9 @@ export interface IRedisClient {
 
     // Hash operations
     hmget(key: string, ...fields: string[]): Promise<(string | null)[]>;
+
+    // Get multiple keys (MGET)
+    mget(...keys: string[]): Promise<(string | null)[]>;
 
     // Generic get/set for caching
     get(key: string): Promise<string | null>;
@@ -99,6 +102,11 @@ export class RedisClient implements IRedisClient {
         return this.client.hmget(key, ...fields);
     }
 
+    async mget(...keys: string[]): Promise<(string | null)[]> {
+        if (keys.length === 0) return [];
+        return this.client.mget(...keys);
+    }
+
     async get(key: string): Promise<string | null> {
         return this.client.get(key);
     }
@@ -170,10 +178,18 @@ export class SearchIdTracker {
 
     constructor(
         private readonly redis: IRedisClient | null,
-        network: string
+        private readonly network: string
     ) {
         this.heroKey = heroSearchIdsKey(network);
         this.houseKey = houseSearchIdsKey(network);
+    }
+
+    // Drop IDs still within their verify cooldown so we don't re-enqueue
+    // items detect-transfer has already checked in the last cooldown window.
+    private async filterFresh(type: 'HERO' | 'HOUSE', ids: number[]): Promise<number[]> {
+        if (!this.redis) return ids;
+        const vals = await this.redis.mget(...ids.map((id) => cooldownKey(type, this.network, id)));
+        return ids.filter((_, i) => vals[i] === null);
     }
 
     // Track hero search IDs (async, non-blocking)
@@ -181,7 +197,10 @@ export class SearchIdTracker {
         if (!this.redis || ids.length === 0) return;
 
         try {
-            await this.redis.addToSet(this.heroKey, ...ids);
+            const fresh = await this.filterFresh('HERO', ids);
+            if (fresh.length > 0) {
+                await this.redis.addToSet(this.heroKey, ...fresh);
+            }
         } catch (err) {
             // Log but don't throw - this is a non-critical operation
             console.error('Failed to track hero search IDs:', err);
@@ -193,7 +212,10 @@ export class SearchIdTracker {
         if (!this.redis || ids.length === 0) return;
 
         try {
-            await this.redis.addToSet(this.houseKey, ...ids);
+            const fresh = await this.filterFresh('HOUSE', ids);
+            if (fresh.length > 0) {
+                await this.redis.addToSet(this.houseKey, ...fresh);
+            }
         } catch (err) {
             // Log but don't throw - this is a non-critical operation
             console.error('Failed to track house search IDs:', err);

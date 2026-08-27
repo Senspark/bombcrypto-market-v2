@@ -2,7 +2,7 @@ import { useContract } from "../context/smc";
 import { AxiosResponse } from "axios";
 
 interface Transaction {
-  token_id: number;
+  tokenId: number;
   isToken?: string;
   [key: string]: unknown;
 }
@@ -30,7 +30,7 @@ const useGetTokenPayList = () => {
     if (!listing.data.transactions) return listing.data.transactions as undefined;
     const listTokenId: number[] = [];
     listing.data.transactions.map((el) => {
-      listTokenId.push(el.token_id);
+      listTokenId.push(Number(el.tokenId));
     });
     const respPay = isSwitchBHouse
       ? await getHousePayList(listTokenId as unknown as number)

@@ -11,12 +11,12 @@ import {
 import { IMAGE_TOKEN_SHOW } from "../../utils/config";
 
 interface HouseData {
-  token_id: string | number;
+  tokenId: string | number;
   rarity: number;
   capacity: number;
   amount: string | number | bigint;
   isToken?: string;
-  seller_wallet_address?: string;
+  sellerWalletAddress?: string;
 }
 
 interface DashboardBhouseProps {
@@ -34,7 +34,7 @@ const BHeroFullWidth: React.FC<DashboardBhouseProps> = ({ data }) => {
         />
       </div>
       <div className="info">
-        <Tag>#{data.token_id}</Tag>
+        <Tag>#{data.tokenId}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapHouse[data.rarity]}</Tag>
       </div>
 
@@ -62,7 +62,7 @@ const BHeroFullWidth: React.FC<DashboardBhouseProps> = ({ data }) => {
           <span>{bcoinFormat(data.amount)}</span>
           <div className="toolip">{bcoinFormat(data.amount)}</div>
         </div>
-        <ButtonBuy data={data} price={data.amount} id={data.token_id} />
+        <ButtonBuy data={data} price={data.amount} id={data.tokenId} />
       </div>
     </Item>
   );

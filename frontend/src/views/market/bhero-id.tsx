@@ -10,7 +10,7 @@ import { AiOutlineLeft } from "react-icons/ai";
 
 import { bcoinFormat, mapRarity, mapTag, getAPI } from "../../utils/helper";
 import { HeroIcon } from "../../components/hero";
-import { IMAGE_TOKEN_SHOW, HeroType } from "../../utils/config";
+import { IMAGE_TOKEN_SHOW, HeroType, NETWORK_CONFIG } from "../../utils/config";
 import useGetTokenPayList from "../../hooks/useGetTokenPayList";
 import { useAccount } from "../../context/account";
 import {
@@ -18,20 +18,22 @@ import {
   offListenNetworkChange,
 } from "../../components/Service/web3";
 import _ from "lodash";
-import { ShieldOutput } from "../../types/hero";
+import { ShieldOutput, SuspiciousFlag } from "../../types/hero";
+import { SuspiciousBanner } from "../../components/common/suspicious";
 
 interface RouteParams {
   id: string;
 }
 
 interface HeroData {
-  token_id: number;
+  tokenId: number;
   rarity: number;
   level: number;
   amount: string;
   isToken?: string;
-  abilities_hero_s?: number[];
+  abilitiesHeroS?: number[];
   shieldData?: ShieldOutput | null;
+  suspicious?: SuspiciousFlag | null;
   [key: string]: unknown;
 }
 
@@ -58,8 +60,8 @@ const MarketHeroById: React.FC = () => {
         setData(dt);
 
         const heroS =
-          !_.isEmpty(dt?.abilities_hero_s) &&
-          !_.includes(dt?.abilities_hero_s, 0);
+          !_.isEmpty(dt?.abilitiesHeroS) &&
+          !_.includes(dt?.abilitiesHeroS, 0);
         setIsHeroS(heroS);
       }
     })();
@@ -104,6 +106,8 @@ const MarketHeroById: React.FC = () => {
     }
   }, [network]);
 
+  const networkInfo = NETWORK_CONFIG.find((n) => n.name === network);
+
   return (
     <Recently>
       {!data && (
@@ -120,12 +124,19 @@ const MarketHeroById: React.FC = () => {
           </Back>
           <Content>
             <div>
+              <SuspiciousBanner flag={data.suspicious} />
               <CardItem>
                 <div className="header">
-                  <Tag>#{data.token_id}</Tag>
+                  <Tag>#{data.tokenId}</Tag>
                   <Tag className={mapTag[data.rarity]}>
                     {mapRarity(data.rarity)}
                   </Tag>
+                  {networkInfo && (
+                    <NetworkTag>
+                      <img src={networkInfo.urlIcon} alt={networkInfo.name} />
+                      {networkInfo.name}
+                    </NetworkTag>
+                  )}
                 </div>
 
                 <div className="icon-hero">
@@ -227,6 +238,23 @@ const ContentTab = styled.div`
     & > div {
       min-height: 65.438rem;
     }
+  }
+`;
+
+const NetworkTag = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  img {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
   }
 `;
 

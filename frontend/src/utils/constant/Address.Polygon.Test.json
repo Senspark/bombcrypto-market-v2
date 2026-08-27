@@ -1,10 +1,9 @@
 {
-  "bcoin": "",
-  "sen": "",
-  "bhero": "",
-  "bhouse": "",
-  "bheromarket": "",
-  "bhousemarket": "",
-  "rpc": "https://rpc-amoy.polygon.technology/",
-  "api": ""
+  "bcoin": "0xcF693b54F86c49bbBa54Ff887488Bbf84C5D05BF",
+  "sen": "0x93567522610828695F36178b180989996082404A",
+  "bhero": "0xF9f21032bcCCe8997bB29Ab9FBE19502191B7596",
+  "bhouse": "0x0fc7397017f1bebaf8ffe8220871af2b5b65509d",
+  "bheromarket": "0xf3a7195920519f8A22cDf84EBB9F74342abE9812",
+  "bhousemarket": "0x23094e46b74BF9352720a14CcbEf5C85496f65FC",
+  "rpc": "https://rpc-amoy.polygon.technology/"
 }

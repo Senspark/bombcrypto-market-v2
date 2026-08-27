@@ -1,4 +1,5 @@
 import {PaginatedResponse, PaginationQuery} from './pagination';
+import {SuspiciousFlag} from './suspicious';
 
 // Shield & Stake data (from Redis cache)
 export interface ShieldData {
@@ -90,6 +91,8 @@ export interface HeroTxRepr {
     nftBlockNumber: number;
     updatedAt: Date;
     shieldData?: ShieldData | null;
+    // Set when the hero or its seller is on the suspicious list
+    suspicious?: SuspiciousFlag | null;
 }
 
 // Hero transaction list response (paginated)

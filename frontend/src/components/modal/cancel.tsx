@@ -4,7 +4,7 @@ import Close from "../icons/close";
 import { Modal } from "antd";
 
 interface CancelData {
-  token_id?: string | number;
+  tokenId?: string | number;
   [key: string]: any;
 }
 
@@ -30,7 +30,7 @@ const Cancel: React.FC<CancelProps> = ({ data, hide, message, confirm, bType, is
         </div>
         <img src="/icons/sell.webp" alt="" />
         <div className="agency">
-          {bType ? bType : "Bhero"} <span>#{data.token_id}</span>
+          {bType ? bType : "Bhero"} <span>#{data.tokenId}</span>
         </div>
       </div>
       <div className="des-bottom agency">{message}</div>

@@ -22,7 +22,7 @@ interface RouteParams {
 }
 
 interface HouseData {
-  token_id: number;
+  tokenId: number;
   rarity: number;
   amount: string;
   isToken?: string;
@@ -110,7 +110,7 @@ const MarketHeroById: React.FC = () => {
             <div>
               <CardItem>
                 <div className="header">
-                  <Tag>#{data.token_id}</Tag>
+                  <Tag>#{data.tokenId}</Tag>
                   <Tag className={mapTag[data.rarity]}>
                     {mapHouse[data.rarity]}
                   </Tag>

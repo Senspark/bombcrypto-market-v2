@@ -1,10 +1,14 @@
 import {Request, Response} from 'express';
 import {IHeroTransactionRepository} from '@/domain/interfaces/repository';
-import {createEmptyHeroTxFilterContext, HeroTxFilterContext, parseCompactShieldData} from '@/domain/models/hero';
+import {createEmptyHeroTxFilterContext, HeroTxFilterContext, HeroTxReq, parseCompactShieldData, TX_STATUS} from '@/domain/models/hero';
+import {resolveSuspiciousFlag} from '@/domain/models/suspicious';
+import {ISuspiciousRegistry} from '@/usecases/suspicious-registry';
 import {generateCacheKeyFromData, ICache} from '@/infrastructure/cache/memory-cache';
 import {IRedisClient, SearchIdTracker} from '@/infrastructure/redis/client';
 import {shieldDataKey, shieldFetchKey} from '@/infrastructure/redis/redis-keys';
-import {BlockChainCenterApi} from '@/infrastructure/blockchain/blockchain-center-api';
+import {BlockChainCenterApi, isRevertError} from '@/infrastructure/blockchain/blockchain-center-api';
+import {createBHeroMarketService} from '@/infrastructure/blockchain/contracts/bhero-market';
+import {resolvePayTokenName} from '@/utils/pay-token';
 import {Logger} from '@/utils/logger';
 import {asyncHandler, HttpErrors} from '../middleware/error-handler';
 
@@ -25,10 +29,14 @@ const OWNER_OF_ABI = [
 // Hero handler dependencies
 export interface HeroHandlerDeps {
     heroTxRepo: IHeroTransactionRepository;
+    suspiciousRegistry: ISuspiciousRegistry;
     cache: ICache;
     searchIdTracker: SearchIdTracker;
     blockchainApi: BlockChainCenterApi | null;
     contractAddress: string;
+    marketContractAddress: string;
+    bcoinContractAddress: string;
+    senContractAddress: string;
     redis: IRedisClient | null;
     network: string;
     logger: Logger;
@@ -123,6 +131,18 @@ export function createSearchHandler(deps: HeroHandlerDeps) {
             return deps.heroTxRepo.filter(filterContext);
         });
 
+        // Flagged after the cache so a freshly marked hero shows up right away
+        if (result.transactions.length > 0) {
+            try {
+                const registry = await deps.suspiciousRegistry.get();
+                for (const tx of result.transactions) {
+                    tx.suspicious = resolveSuspiciousFlag(registry, tx.tokenId, tx.sellerWalletAddress);
+                }
+            } catch (err) {
+                deps.logger.warn('Failed to enrich suspicious flags:', err);
+            }
+        }
+
         // Enrich with shield data from Redis (after cache, so every response gets fresh data)
         if (deps.redis && result.transactions.length > 0) {
             try {
@@ -207,12 +227,10 @@ export function createBurnHandler(deps: HeroHandlerDeps) {
                 [tokenId.toString()]
             );
         } catch (err: unknown) {
-            // If token doesn't exist, owner is effectively zero address
+            // ownerOf reverts only for a nonexistent token, so a revert means burned.
+            // Transport failures carry no revert reason and still raise.
             const errorMsg = err instanceof Error ? err.message : String(err);
-            if (
-                errorMsg.includes('ERC721: owner query for nonexistent token') ||
-                errorMsg.includes('ERC721: invalid token ID')
-            ) {
+            if (isRevertError(errorMsg)) {
                 owner = ZERO_ADDRESS;
             } else {
                 deps.logger.error('Error checking token owner:', err);
@@ -242,6 +260,87 @@ export function createVersionHandler() {
     };
 }
 
+/**
+ * POST /transactions/heroes/sync/:tokenId
+ * Backfill a missing listing row from the on-chain order (self-heals when the
+ * indexer missed a CreateOrder event). Only writes when an order exists on-chain.
+ */
+export function createSyncHandler(deps: HeroHandlerDeps) {
+    return asyncHandler(async (req: Request, res: Response) => {
+        const tokenIdStr = req.params.tokenId;
+
+        if (!tokenIdStr) {
+            throw HttpErrors.badRequest('tokenId is required');
+        }
+
+        let tokenId: bigint;
+        try {
+            tokenId = BigInt(tokenIdStr);
+        } catch {
+            throw HttpErrors.badRequest('invalid tokenId format');
+        }
+
+        if (!deps.blockchainApi || !deps.marketContractAddress) {
+            throw HttpErrors.internalError('Blockchain API not configured');
+        }
+
+        const market = createBHeroMarketService(deps.marketContractAddress, deps.blockchainApi);
+
+        // Read the on-chain order. getOrderV2 reverts ("order not existed") when
+        // there is no active listing — a revert (or any read failure) means we must
+        // NOT create a row, so the seller falls through to a normal createOrder.
+        let order;
+        try {
+            order = await market.getOrderV2(tokenId);
+        } catch {
+            deps.logger.info('Hero sync: no on-chain order to backfill', {tokenId: tokenIdStr});
+            res.json({synced: false, tokenId: Number(tokenId)});
+            return;
+        }
+
+        if (!order.seller || order.seller === ZERO_ADDRESS || order.startedAt === '0') {
+            res.json({synced: false, tokenId: Number(tokenId)});
+            return;
+        }
+
+        const payToken = resolvePayTokenName(
+            order.tokenAddress,
+            deps.bcoinContractAddress,
+            deps.senContractAddress
+        );
+
+        // The shared upsert prunes any listing row below the max block_number for
+        // this token, and that max counts even soft-deleted historical rows. A
+        // relisted token usually has old (deleted) listing rows with real block
+        // numbers, so a synthetic 0 would be pruned the instant it is inserted.
+        // The current chain head is >= every real listing block, keeping this row.
+        const blockNumber = await deps.blockchainApi.getBlockNumber();
+
+        const txReq: HeroTxReq = {
+            txHash: `sync:hero:${tokenId.toString()}`,
+            blockNumber,
+            blockTimestamp: new Date(Number(order.startedAt) * 1000),
+            status: TX_STATUS.LISTING,
+            sellerWalletAddress: order.seller,
+            buyerWalletAddress: '',
+            heroDetails: order.tokenDetail,
+            amount: order.price,
+            tokenId: Number(tokenId),
+            payToken,
+        };
+
+        await deps.heroTxRepo.upsert(txReq);
+        deps.cache.clear();
+
+        deps.logger.info('Hero sync: backfilled listing', {
+            tokenId: tokenIdStr,
+            seller: order.seller,
+        });
+
+        res.json({synced: true, tokenId: Number(tokenId)});
+    });
+}
+
 // Create all hero handlers
 export function createHeroHandlers(deps: HeroHandlerDeps) {
     return {
@@ -249,5 +348,6 @@ export function createHeroHandlers(deps: HeroHandlerDeps) {
         stats: createStatsHandler(deps),
         burn: createBurnHandler(deps),
         version: createVersionHandler(),
+        sync: createSyncHandler(deps),
     };
 }

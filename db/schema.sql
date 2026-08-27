@@ -336,6 +336,34 @@ CREATE TABLE bsc.subs_transfer (
 
 
 --
+-- Name: suspicious_heroes; Type: TABLE; Schema: bsc; Owner: -
+--
+
+CREATE TABLE bsc.suspicious_heroes (
+    id bigint NOT NULL,
+    token_id bigint NOT NULL,
+    reason character varying(64) DEFAULT 'fraud'::character varying NOT NULL,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: suspicious_wallets; Type: TABLE; Schema: bsc; Owner: -
+--
+
+CREATE TABLE bsc.suspicious_wallets (
+    id bigint NOT NULL,
+    wallet_address public.citext NOT NULL,
+    reason character varying(64) DEFAULT 'fraud'::character varying NOT NULL,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: hero_abilities; Type: TABLE; Schema: polygon; Owner: -
 --
 
@@ -559,6 +587,34 @@ CREATE TABLE polygon.subs_transfer (
     id character varying NOT NULL,
     last_block bigint,
     last_checked_id bigint DEFAULT 0
+);
+
+
+--
+-- Name: suspicious_heroes; Type: TABLE; Schema: polygon; Owner: -
+--
+
+CREATE TABLE polygon.suspicious_heroes (
+    id bigint NOT NULL,
+    token_id bigint NOT NULL,
+    reason character varying(64) DEFAULT 'fraud'::character varying NOT NULL,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: suspicious_wallets; Type: TABLE; Schema: polygon; Owner: -
+--
+
+CREATE TABLE polygon.suspicious_wallets (
+    id bigint NOT NULL,
+    wallet_address public.citext NOT NULL,
+    reason character varying(64) DEFAULT 'fraud'::character varying NOT NULL,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 

@@ -26,7 +26,10 @@ export function parseHeroDetails(detailsStr: string): HeroRepr {
     const rarity = getAttribute(details, 40);
     const level = getAttribute(details, 45);
     const color = getAttribute(details, 50);
-    const skin = getAttribute(details, 55);
+    // Skin uses split-encoding after the rarity-v2 contract upgrade:
+    // low 5 bits at offset 55 + high 5 bits at offset 250 → 10-bit value 0..1023.
+    // Pre-upgrade tokens have high bits = 0 so they decode identically.
+    const skin = (getAttribute(details, 250) << 5) | getAttribute(details, 55);
     const stamina = getAttribute(details, 60);
     const speed = getAttribute(details, 65);
     const bombSkin = getAttribute(details, 70);

@@ -16,7 +16,7 @@ const RETRY_DELAYS = [1000, 2000, 3000]; // ms
 interface ApiResponse<T> {
     success: boolean;
     result?: T;
-    error?: string;
+    errorString?: string;
 }
 
 export interface BlockChainCenterApiConfig {
@@ -111,14 +111,15 @@ export class BlockChainCenterApi {
             try {
                 const response = await fetch(url, options);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                // The service surfaces contract reverts as a 400 with the reason in
+                // `errorString`, so parse the body even when the response is not ok —
+                // otherwise the revert reason (e.g. "ERC721: invalid token ID") is lost.
+                const data = (await response.json().catch(() => null)) as ApiResponse<T> | null;
 
-                const data = (await response.json()) as ApiResponse<T>;
-
-                if (!data.success) {
-                    throw new Error(data.error ?? 'API returned success=false');
+                if (!response.ok || !data || !data.success) {
+                    throw new Error(
+                        data?.errorString ?? `HTTP ${response.status}: ${response.statusText}`
+                    );
                 }
 
                 return data.result as T;

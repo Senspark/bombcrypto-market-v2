@@ -99,7 +99,7 @@ export const Stats: React.FC<StatsProps> = ({ data }) => {
             <div className="skill">
               <IconSkill src="/icons/skill2.webp" />
               <span>
-                {data.bomb_power}
+                {data.bombPower}
                 {addPower !== 0 && <em className="add">(+{addPower})</em>}
               </span>
             </div>
@@ -122,14 +122,14 @@ export const Stats: React.FC<StatsProps> = ({ data }) => {
             <h4 className="title">BOMB NUM</h4>
             <div className="skill">
               <IconSkill src="/icons/skill3.webp" />
-              <span>{data.bomb_count}</span>
+              <span>{data.bombCount}</span>
             </div>
           </div>
           <div>
             <h4 className="title">RANGE</h4>
             <div className="skill">
               <IconSkill src="/icons/skill4.webp" />
-              <span>{data.bomb_range}</span>
+              <span>{data.bombRange}</span>
             </div>
           </div>
         </div>

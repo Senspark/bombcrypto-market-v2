@@ -10,13 +10,13 @@ import useGetTokenPayList from "../../hooks/useGetTokenPayList";
 import { SmartContracts, NETWORK_CONFIG } from "../../utils/config";
 
 interface Transaction {
-  token_id: number;
+  tokenId: number;
   rarity: number;
-  from_wallet_address: string;
-  to_wallet_address: string;
+  fromWalletAddress: string;
+  toWalletAddress: string;
   amount: string;
-  block_timestamp?: string;
-  tx_hash?: string;
+  blockTimestamp?: string;
+  txHash?: string;
   tx_type: string;
   asset_type: string;
   isToken?: string;
@@ -77,6 +77,14 @@ const History: React.FC = () => {
           return "LEGEND";
         case 5:
           return "SUPER LEGEND";
+        case 6:
+          return "MEGA";
+        case 7:
+          return "SUPER MEGA";
+        case 8:
+          return "MYSTIC";
+        case 9:
+          return "SUPER MYSTIC";
         default:
           return "UNKNOWN";
       }
@@ -96,6 +104,14 @@ const History: React.FC = () => {
           return "#ffc207";
         case 5:
           return "#ff0759";
+        case 6:
+          return "#35a0d0";
+        case 7:
+          return "#076bd4";
+        case 8:
+          return "#6b6de6";
+        case 9:
+          return "#c8568e";
         default:
           return "#FF0000";
       }
@@ -144,16 +160,16 @@ const History: React.FC = () => {
         action: BUY,
         actionColor: "#00FF00",
         type: BHERO,
-        tokenId: `#${tx.token_id}`,
+        tokenId: `#${tx.tokenId}`,
         tokenColor: "#FFFDD0",
         rarity: heroRarityToString(tx.rarity),
         rarityColor: heroRarityToColor(tx.rarity),
-        address: tx.from_wallet_address,
-        to_addess: tx.to_wallet_address,
+        address: tx.fromWalletAddress,
+        to_addess: tx.toWalletAddress,
         amount: bcoinFormat(tx.amount),
         amountColor: "#FFD700",
-        date: new Date(tx.block_timestamp || ""),
-        tx_hash: tx.tx_hash,
+        date: new Date(tx.blockTimestamp || ""),
+        tx_hash: tx.txHash,
         isToken: tx.isToken,
       };
     }
@@ -163,15 +179,15 @@ const History: React.FC = () => {
         action: SELL,
         actionColor: "#FF0000",
         type: BHERO,
-        tokenId: `#${tx.token_id}`,
+        tokenId: `#${tx.tokenId}`,
         tokenColor: "#FFFDD0",
         rarity: heroRarityToString(tx.rarity),
         rarityColor: heroRarityToColor(tx.rarity),
-        address: tx.from_wallet_address,
-        to_addess: tx.to_wallet_address,
+        address: tx.fromWalletAddress,
+        to_addess: tx.toWalletAddress,
         amount: bcoinFormat(tx.amount),
         amountColor: "#FFD700",
-        date: new Date(tx.block_timestamp || ""),
+        date: new Date(tx.blockTimestamp || ""),
         isToken: tx.isToken,
       };
     }
@@ -181,15 +197,15 @@ const History: React.FC = () => {
         action: SOLD,
         actionColor: "#FF0000",
         type: BHERO,
-        tokenId: `#${tx.token_id}`,
+        tokenId: `#${tx.tokenId}`,
         tokenColor: "#FFFDD0",
         rarity: heroRarityToString(tx.rarity),
         rarityColor: heroRarityToColor(tx.rarity),
-        address: tx.from_wallet_address,
-        to_addess: tx.to_wallet_address,
+        address: tx.fromWalletAddress,
+        to_addess: tx.toWalletAddress,
         amount: bcoinFormat(tx.amount),
         amountColor: "#FFD700",
-        date: new Date(tx.block_timestamp || ""),
+        date: new Date(tx.blockTimestamp || ""),
         isToken: tx.isToken,
       };
     }
@@ -199,15 +215,15 @@ const History: React.FC = () => {
         action: BUY,
         actionColor: "#00FF00",
         type: BHOUSE,
-        tokenId: `#${tx.token_id}`,
+        tokenId: `#${tx.tokenId}`,
         tokenColor: "#FFFDD0",
         rarity: houseRarityToString(tx.rarity),
         rarityColor: houseRarityToColor(tx.rarity),
-        address: tx.from_wallet_address,
-        to_addess: tx.to_wallet_address,
+        address: tx.fromWalletAddress,
+        to_addess: tx.toWalletAddress,
         amount: bcoinFormat(tx.amount),
         amountColor: "#FFD700",
-        date: new Date(tx.block_timestamp || ""),
+        date: new Date(tx.blockTimestamp || ""),
       };
     }
 
@@ -216,15 +232,15 @@ const History: React.FC = () => {
         action: SELL,
         actionColor: "#FF0000",
         type: BHOUSE,
-        tokenId: `#${tx.token_id}`,
+        tokenId: `#${tx.tokenId}`,
         tokenColor: "#FFFDD0",
         rarity: houseRarityToString(tx.rarity),
         rarityColor: houseRarityToColor(tx.rarity),
-        address: tx.from_wallet_address,
-        to_addess: tx.to_wallet_address,
+        address: tx.fromWalletAddress,
+        to_addess: tx.toWalletAddress,
         amount: bcoinFormat(tx.amount),
         amountColor: "#FFD700",
-        date: new Date(tx.block_timestamp || ""),
+        date: new Date(tx.blockTimestamp || ""),
       };
     }
 
@@ -233,15 +249,15 @@ const History: React.FC = () => {
         action: SOLD,
         actionColor: "#FF0000",
         type: BHOUSE,
-        tokenId: `#${tx.token_id}`,
+        tokenId: `#${tx.tokenId}`,
         tokenColor: "#FFFDD0",
         rarity: houseRarityToString(tx.rarity),
         rarityColor: houseRarityToColor(tx.rarity),
-        address: tx.from_wallet_address,
-        to_addess: tx.to_wallet_address,
+        address: tx.fromWalletAddress,
+        to_addess: tx.toWalletAddress,
         amount: bcoinFormat(tx.amount),
         amountColor: "#FFD700",
-        date: new Date(tx.block_timestamp || ""),
+        date: new Date(tx.blockTimestamp || ""),
       };
     }
 
@@ -283,10 +299,10 @@ const History: React.FC = () => {
     );
 
     const resp = await getListTokenPay(result);
-    if (total_count < 0 || result.data.total_count > total_count) {
+    if (total_count < 0 || result.data.totalCount > total_count) {
       setLoading(true);
 
-      total_count = result.data.total_count;
+      total_count = result.data.totalCount;
 
       const respTransactions = resp as Transaction[] | undefined;
       if (respTransactions) {

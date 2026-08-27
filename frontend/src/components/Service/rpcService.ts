@@ -2,6 +2,12 @@ import {JsonRpcProvider} from 'ethers';
 
 const TAG = '[RPC]';
 const rpcHost = import.meta.env.VITE_RPC_HOST ?? '/api/rpc';
+const isProduction = import.meta.env.VITE_IS_PROD === 'true';
+
+const CHAIN_ID_BSC_MAINNET = 56;
+const CHAIN_ID_BSC_TESTNET = 97;
+const CHAIN_ID_POLYGON_MAINNET = 137;
+const CHAIN_ID_POLYGON_TESTNET = 80002;
 
 // localStorage keys for the fetched/cached RPC lists
 const STORAGE_KEY_BSC = 'rpc_list_bsc';
@@ -16,12 +22,22 @@ const HARDCODE_BSC_MAINNET: string[] = [
     'https://bsc-dataseed4.binance.org/',
 ];
 
+const HARDCODE_BSC_TESTNET: string[] = [
+    'https://bsc-testnet-dataseed.bnbchain.org',
+    'https://bsc-testnet.bnbchain.org',
+    'https://bsc-prebsc-dataseed.bnbchain.org',
+];
+
 const HARDCODE_POLYGON_MAINNET: string[] = [
     'https://polygon.api.onfinality.io/public',
-    'https://polygon.rpc.subquery.network/public',
+    // 'https://polygon.rpc.subquery.network/public',
     'https://poly.api.pocket.network/',
     'https://rpc-mainnet.matic.quiknode.pro',
     'https://polygon.drpc.org/'
+];
+
+const HARDCODE_POLYGON_TESTNET: string[] = [
+    'https://polygon-amoy.drpc.org',
 ];
 
 
@@ -42,9 +58,12 @@ export class RpcService {
             this.loadRpcList('polygon'),
         ]);
 
+        const bscChainId = isProduction ? CHAIN_ID_BSC_MAINNET : CHAIN_ID_BSC_TESTNET;
+        const polygonChainId = isProduction ? CHAIN_ID_POLYGON_MAINNET : CHAIN_ID_POLYGON_TESTNET;
+
         const [bscWorking, polygonWorking] = await Promise.all([
-            this.filterWorkingRpcs(bscRpcs),
-            this.filterWorkingRpcs(polygonRpcs),
+            this.filterWorkingRpcs(bscRpcs, bscChainId),
+            this.filterWorkingRpcs(polygonRpcs, polygonChainId),
         ]);
 
         this._bscRpcs = bscWorking;
@@ -63,11 +82,13 @@ export class RpcService {
     getRpc(chainId: number): string {
         switch (chainId) {
             case 56:   // BSC mainnet
-            case 97:   // BSC testnet
                 return this._pickRandom(this._bscRpcs, HARDCODE_BSC_MAINNET);
+            case 97:   // BSC testnet
+                return this._pickRandom(this._bscRpcs, HARDCODE_BSC_TESTNET);
             case 137:  // Polygon mainnet
-            case 80002: // Polygon testnet (Amoy)
                 return this._pickRandom(this._polygonRpcs, HARDCODE_POLYGON_MAINNET);
+            case 80002: // Polygon testnet (Amoy)
+                return this._pickRandom(this._polygonRpcs, HARDCODE_POLYGON_TESTNET);
             default:
                 console.error(`${TAG} Unknown chainId: ${chainId}`);
                 return '';
@@ -116,9 +137,14 @@ export class RpcService {
      *  3. Use hardcoded fallback (NOT saved to localStorage)
      */
     private async loadRpcList(network: 'bsc' | 'polygon'): Promise<string[]> {
+        if (!isProduction) {
+            const testnetFallback = network === 'bsc' ? HARDCODE_BSC_TESTNET : HARDCODE_POLYGON_TESTNET;
+            console.log(`${TAG} Testnet mode — using hardcoded ${network} testnet list (${testnetFallback.length} entries)`);
+            return testnetFallback;
+        }
+
         const storageKey = network === 'bsc' ? STORAGE_KEY_BSC : STORAGE_KEY_POLYGON;
         const endpoint = `${rpcHost}/${network}`;
-        // console.log(`Fetching RPC list for ${endpoint}`);
 
         // 1. Try remote API
         try {
@@ -126,11 +152,8 @@ export class RpcService {
             if (response.ok) {
                 const data = await response.json() as string[];
                 if (Array.isArray(data) && data.length > 0) {
-                    // Remove previous item first
                     localStorage.removeItem(storageKey);
-                    // Save new rpc list we just fetch from server
                     localStorage.setItem(storageKey, JSON.stringify(data));
-                    // console.log(`${TAG} Fetched ${network} RPC list from API (${data.length} entries)`);
                     return data;
                 }
             }
@@ -144,7 +167,6 @@ export class RpcService {
             if (stored) {
                 const data = JSON.parse(stored) as string[];
                 if (Array.isArray(data) && data.length > 0) {
-                    // console.log(`${TAG} Loaded ${network} RPC list from localStorage (${data.length} entries)`);
                     return data;
                 }
             }
@@ -152,24 +174,27 @@ export class RpcService {
             console.error(`${TAG} Failed to read ${network} RPC list from localStorage: ${e}`);
         }
 
-        // 3. Hardcoded fallback — intentionally NOT saved to localStorage
-        const fallback = network === 'bsc' ? HARDCODE_BSC_MAINNET : HARDCODE_POLYGON_MAINNET;
-        // console.log(`${TAG} Using hardcoded fallback list for ${network} (${fallback.length} entries)`);
-        return fallback;
+        // 3. Hardcoded mainnet fallback — intentionally NOT saved to localStorage
+        return network === 'bsc' ? HARDCODE_BSC_MAINNET : HARDCODE_POLYGON_MAINNET;
     }
 
     /**
      * Tests all RPCs in the list concurrently and returns only the ones that
-     * respond successfully to an eth_blockNumber call.
+     * respond successfully AND report the expected chainId. This rejects RPCs
+     * that are alive but point at the wrong network (e.g. a testnet RPC leaking
+     * into the mainnet pool), which would make mainnet contract calls return 0x.
      * If none work, returns an empty array (caller handles the fallback).
      */
-    private async filterWorkingRpcs(rpcs: string[]): Promise<string[]> {
+    private async filterWorkingRpcs(rpcs: string[], expectedChainId: number): Promise<string[]> {
         const unique = [...new Set(rpcs)];
 
         const results = await Promise.allSettled(
             unique.map(async (rpc) => {
                 const provider = new JsonRpcProvider(rpc);
-                await provider.getBlockNumber();
+                const network = await provider.getNetwork();
+                if (Number(network.chainId) !== expectedChainId) {
+                    throw new Error(`chainId mismatch: expected ${expectedChainId}, got ${network.chainId}`);
+                }
                 return rpc;
             })
         );

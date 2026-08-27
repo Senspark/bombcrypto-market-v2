@@ -78,8 +78,8 @@ function parseDSN(dsn: string): PoolConfig {
     try {
         const url = new URL(dsn);
         const config: PoolConfig = {
-            user: url.username,
-            password: url.password,
+            user: decodeURIComponent(url.username),
+            password: decodeURIComponent(url.password),
             host: url.hostname,
             port: parseInt(url.port, 10) || 5432,
             database: url.pathname.slice(1), // Remove leading /

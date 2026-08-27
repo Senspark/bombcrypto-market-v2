@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_IS_PROD: string
-  readonly VITE_USE_LOCAL: string
 }
 
 interface ImportMeta {

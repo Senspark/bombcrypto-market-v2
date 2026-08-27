@@ -20,13 +20,13 @@ import { useAccount } from "../../context/account";
 
 interface HouseData {
   id?: string | number;
-  token_id?: string | number;
+  tokenId?: string | number;
   ref_id?: string | number;
   rarity: number;
   capacity: number;
   amount?: string | number | bigint;
   isToken?: string;
-  block_timestamp?: string;
+  blockTimestamp?: string;
 }
 
 interface InventoryBhouseProps {
@@ -62,7 +62,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
   };
 
   const confirm = async () => {
-    let block_sell = new Date(data.block_timestamp || "");
+    let block_sell = new Date(data.blockTimestamp || "");
     block_sell.setMinutes(block_sell.getMinutes() + 5);
     let current = new Date();
     let seconds = (block_sell.getTime() - current.getTime()) / 1000;
@@ -81,7 +81,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
     toggle();
     setLoading(true);
     try {
-      await cancelOrderBhouse(data.token_id!);
+      await cancelOrderBhouse(data.tokenId!);
       setStatus("cancel-success");
       setMessage("Successfully canceled sale");
       toggle();
@@ -107,7 +107,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
         />
       </div>
       <div className="info">
-        <Tag>#{data.token_id ? data.token_id : data.id}</Tag>
+        <Tag>#{data.tokenId ? data.tokenId : data.id}</Tag>
         <Tag className={mapTag[data.rarity]}>{mapHouse[data.rarity]}</Tag>
       </div>
       <div className="flex-skill">
@@ -154,7 +154,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
       {status === "sell" && (
         <SellModal
           setStatus={updateStatus}
-          data={{ ...data, id: data.id || data.token_id || 0 }}
+          data={{ ...data, id: data.id || data.tokenId || 0 }}
           hide={toggle}
           minPrice={minPrice}
           name={"BHouse"}
@@ -203,7 +203,7 @@ const BHeroFullWidth: React.FC<InventoryBhouseProps> = ({
       )}
       {status === "cancel-success" && (
         <Success
-          id={data.token_id || data.ref_id || data.id}
+          id={data.tokenId || data.ref_id || data.id}
           hide={toggle}
           message={message}
           title="Cancel Bhouse"

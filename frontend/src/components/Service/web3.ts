@@ -1,5 +1,7 @@
 import { ChainId, getRpcByNetwork, isProduction, NETWORK } from "../../utils/config";
-import { Contract, JsonRpcProvider, BrowserProvider, toBeHex } from "ethers";
+import { Contract, JsonRpcProvider } from "ethers";
+
+const toUnpaddedHex = (n: number) => "0x" + n.toString(16);
 import chainList from "../../utils/constant/chainlist.json";
 import BcoinABI from "../../utils/constant/BcoinABI.json";
 
@@ -143,7 +145,7 @@ export const changeNetwork = async (chainId: number): Promise<boolean> => {
   try {
     await ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: toBeHex(chainId) }],
+      params: [{ chainId: toUnpaddedHex(chainId) }],
     });
     return true;
   } catch (switchError: any) {
@@ -155,7 +157,7 @@ export const changeNetwork = async (chainId: number): Promise<boolean> => {
           method: "wallet_addEthereumChain",
           params: [
             {
-              chainId: toBeHex(chainId),
+              chainId: toUnpaddedHex(chainId),
               chainName: network?.name,
               nativeCurrency: network?.nativeCurrency,
               rpcUrls: network?.rpc,
@@ -173,14 +175,14 @@ export const changeNetwork = async (chainId: number): Promise<boolean> => {
 
 export const onListenNetworkChange = (onChange: (chainId: string) => void): void => {
   if (!window.ethereum) return;
-  window.ethereum.on("networkChanged", (chainId: string) => {
+  window.ethereum.on("chainChanged", (chainId: string) => {
     onChange(chainId);
   });
 };
 
 export const offListenNetworkChange = (onChange: (chainId: string) => void): void => {
   if (!window.ethereum) return;
-  window.ethereum.removeListener("networkChanged", onChange);
+  window.ethereum.removeListener("chainChanged", onChange);
 };
 
 export const onListenAcountChange = (onChange: () => void): void => {
@@ -224,8 +226,7 @@ export const getAccount = async (): Promise<string> => {
   if (!window.ethereum) {
     throw new Error("No ethereum provider found");
   }
-  const provider = new BrowserProvider(window.ethereum);
-  const accounts = await provider.send("eth_accounts", []);
+  const accounts = await window.ethereum.request({ method: "eth_accounts" });
   if (!accounts || accounts.length === 0) {
     throw new Error("No account found");
   }
