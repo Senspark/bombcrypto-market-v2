@@ -16,6 +16,13 @@ export const ContainerFull = styled.div`
   margin: 0 auto;
   display: flex;
   width: 100%;
+  align-items: center;
+  @media (max-width: 820px) {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.75rem;
+    padding: 0.4rem 0.5rem;
+  }
 `;
 
 export const Title = styled.h3`
@@ -25,12 +32,13 @@ export const Title = styled.h3`
 
 export const Tag = styled.div`
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.33;
+  letter-spacing: 0.04em;
   color: #fff;
-  padding: 0.313rem 0.375rem;
-  border-radius: 3px;
-  background-color: #ff973a;
+  padding: 0.313rem 0.5rem;
+  border-radius: var(--radius-sm, 6px);
+  background-color: var(--accent, #ff973a);
   margin: 0.438rem 0rem;
   width: fit-content;
   white-space: nowrap;
@@ -104,18 +112,25 @@ export const IconCoinStake = styled.img`
 `;
 
 export const TitleAgency = styled.div`
-  font-family: "agency-fb-regular", sans-serif;
+  font-family: "Sora", sans-serif;
   font-size: 2.031rem;
   color: #fff;
   margin-bottom: 1.563rem;
 `;
 
 export const CardItem = styled.div`
-  border: solid 1px #343849;
-  background-color: #191b24;
+  border: solid 1px var(--border, #343849);
+  background-color: var(--surface, #191b24);
   padding: 1rem;
   width: fit-content;
-  transition: background 0.3s ease-in-out;
+  border-radius: var(--radius, 10px);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
+  &:hover {
+    border-color: var(--accent, #ff973a);
+    box-shadow: var(--shadow, 0 6px 20px rgba(0, 0, 0, 0.35));
+    transform: translateY(-3px);
+  }
   .header {
     display: flex;
     & > div {

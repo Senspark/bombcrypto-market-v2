@@ -45,27 +45,37 @@ const MarketHeroById: React.FC = () => {
   const { auth, network } = useAccount();
   const [isFirstRun, setIsFirstRun] = useState(true);
   const [isHeroS, setIsHeroS] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    setData(null);
+    setNotFound(false);
     (async function () {
-      const listing = await axios.get(
-        getAPI(network) +
-          "transactions/heroes/search?status=listing&token_id=" +
-          params.id
-      );
-      const resp = await getListTokenPay(listing);
-      const data = resp as HeroData[];
-      if (data.length > 0) {
-        const dt = data[0];
-        setData(dt);
+      try {
+        const listing = await axios.get(
+          getAPI(network) +
+            "transactions/heroes/search?status=listing&token_id=" +
+            params.id
+        );
+        const resp = await getListTokenPay(listing);
+        const data = (resp as HeroData[]) || [];
+        if (data.length > 0) {
+          const dt = data[0];
+          setData(dt);
 
-        const heroS =
-          !_.isEmpty(dt?.abilitiesHeroS) &&
-          !_.includes(dt?.abilitiesHeroS, 0);
-        setIsHeroS(heroS);
+          const heroS =
+            !_.isEmpty(dt?.abilitiesHeroS) &&
+            !_.includes(dt?.abilitiesHeroS, 0);
+          setIsHeroS(heroS);
+        } else {
+          // No listing for this token on the current network.
+          setNotFound(true);
+        }
+      } catch (e) {
+        setNotFound(true);
       }
     })();
-  }, [params]);
+  }, [params, network]);
 
   const goBack = () => {
     const pathname = window.location.href;
@@ -110,10 +120,28 @@ const MarketHeroById: React.FC = () => {
 
   return (
     <Recently>
-      {!data && (
+      {!data && !notFound && (
         <div className="loading-in-local">
           <Loading />
         </div>
+      )}
+      {notFound && (
+        <ContentTab>
+          <Back>
+            <div onClick={goBack}>
+              <AiOutlineLeft /> Back
+            </div>
+          </Back>
+          <div style={{ textAlign: "center", color: "#fff", marginTop: "6rem" }}>
+            <div style={{ fontSize: "1.6rem", marginBottom: "0.5rem" }}>
+              Hero #{params.id} not found
+            </div>
+            <div style={{ opacity: 0.6 }}>
+              This hero isn't listed on the current network — try switching the
+              network.
+            </div>
+          </div>
+        </ContentTab>
       )}
       {data && (
         <ContentTab>
@@ -195,18 +223,31 @@ const Content = styled.div`
   min-width: 62.5rem;
   margin: 0 auto;
   display: flex;
+  @media (max-width: 820px) {
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
 `;
 
 const Right = styled.div`
   width: 100%;
   margin-bottom: 2rem;
   margin-left: 7rem;
+  @media (max-width: 820px) {
+    margin-left: 0;
+  }
 `;
 
 const Back = styled.div`
   max-width: 75rem;
   min-width: 62.5rem;
   margin: 10px auto;
+  @media (max-width: 820px) {
+    min-width: 0;
+    padding: 0 1rem;
+  }
   cursor: pointer;
   transition: 0.3s ease-in-out;
   opacity: 0.6;

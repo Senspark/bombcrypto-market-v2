@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import { normalizeResponse } from './utils/caseNormalizer';
 import { rpcService } from './components/Service/rpcService';
+import { isProduction } from './utils/config';
 
 // Temporary: Support both snake_case and camelCase during backend migration
 // TODO: Remove after migration complete
@@ -21,7 +22,12 @@ axios.interceptors.response.use((response) => {
  */
 const bootstrap = async (): Promise<void> => {
   try {
-    rpcService.initialize().then();
+    // rpcService only probes MAINNET RPC pools; on testnet it's unused
+    // (getRpcByChainId uses the configured testnet RPC), so skip the probe
+    // flood entirely.
+    if (isProduction) {
+      rpcService.initialize().then();
+    }
   } catch (error) {
     console.error('[RPC] Bootstrap initialization failed:', error);
   }

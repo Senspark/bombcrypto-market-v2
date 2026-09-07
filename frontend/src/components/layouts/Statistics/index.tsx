@@ -124,8 +124,8 @@ const Statistics: React.FC = () => {
           </div>
         </TabTitle>
         <ContentTab>
-          <Row className="row" justify="center" wrap={false} gutter={10}>
-            <Col md={6} xs={6} sm={6}>
+          <Row className="row" justify="center" wrap={true} gutter={[10, 18]}>
+            <Col md={6} xs={12} sm={12}>
               <Row wrap={false} gutter={10}>
                 <Col md={7} xs={12} sm={10}>
                   <img className="icon" src="/icons/Volume.png" alt="" />
@@ -156,7 +156,7 @@ const Statistics: React.FC = () => {
                 </Col>
               </Row>
             </Col>
-            <Col md={6} xs={6} sm={6}>
+            <Col md={6} xs={12} sm={12}>
               <Row wrap={false} gutter={10}>
                 <Col md={5} xs={9} sm={7}>
                   <img className="icon" src="/icons/sen_token.png" alt="" />
@@ -187,7 +187,7 @@ const Statistics: React.FC = () => {
                 </Col>
               </Row>
             </Col>
-            <Col md={6} xs={6} sm={6}>
+            <Col md={6} xs={12} sm={12}>
               <Row wrap={false} gutter={10}>
                 <Col md={5} xs={9} sm={7}>
                   <img className="icon" src="/icons/token.png" alt="" />
@@ -298,7 +298,7 @@ const TabChange = styled.div`
   opacity: 0.3;
   cursor: pointer;
   transition: opacity 0.3s ease-in-out;
-  font-family: "agency-fb-regular", sans-serif;
+  font-family: "Sora", sans-serif;
   transition: 0.3s ease-in-out;
   &:hover {
     color: white !important;
@@ -322,6 +322,14 @@ const TabChange = styled.div`
       position: absolute;
       bottom: 0;
       left: 0;
+    }
+  }
+  @media (max-width: 820px) {
+    padding: 0.8rem 1.1rem;
+    font-size: 1.4rem;
+    img {
+      height: 1.5rem;
+      margin-right: 0.5rem;
     }
   }
 `;
@@ -357,6 +365,10 @@ const Element = styled.div`
       transform: translateY(0);
     }
   }
+  @media (max-width: 820px) {
+    padding: 0.9rem 1.1rem;
+    font-size: 1.1rem;
+  }
 `;
 
 const ContainerTab = styled.div`
@@ -365,8 +377,10 @@ const ContainerTab = styled.div`
 `;
 const ContentTab = styled.div`
   width: 100%;
-  border: solid 2px #343849;
+  border: solid 1px var(--border, #343849);
   border-top: none;
+  background: var(--surface, transparent);
+  border-radius: 0 0 var(--radius, 10px) var(--radius, 10px);
   display: flex;
   justify-content: space-around;
   margin-bottom: 3.438rem;
@@ -375,16 +389,20 @@ const ContentTab = styled.div`
     height: 4rem;
   }
   .title {
-    font-size: 1rem;
-    font-weight: normal;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     line-height: 1.32;
-    color: #fff;
+    color: var(--text-muted, #8d95b7);
     white-space: nowrap;
   }
   .value {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    font-weight: 700;
     color: #fff;
     overflow: hidden;
+    font-family: "Sora", sans-serif;
   }
   .row {
     width: 95%;
@@ -399,13 +417,27 @@ const ContentTab = styled.div`
 
 const TabTitle = styled.div`
   display: flex;
-  border: solid 2px #343849;
+  border: solid 1px var(--border, #343849);
+  border-bottom: none;
+  background: var(--surface, transparent);
+  border-radius: var(--radius, 10px) var(--radius, 10px) 0 0;
   width: 100%;
   overflow: hidden;
   align-items: center;
   .right {
     margin-left: auto;
     display: flex;
+  }
+  @media (max-width: 820px) {
+    flex-wrap: wrap;
+    overflow: visible;
+    justify-content: center;
+    .right {
+      margin-left: 0;
+      width: 100%;
+      justify-content: center;
+      border-top: 1px solid var(--border, #343849);
+    }
   }
 `;
 export default Statistics;

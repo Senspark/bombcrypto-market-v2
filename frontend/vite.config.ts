@@ -6,8 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001,
-    open: true,
+    open: false,
     proxy: {
+      // New market-api (decode + transactions search). Target is the docker
+      // service in compose, localhost when running on the host.
+      '/market-api': {
+        target: process.env.VITE_MARKET_API_TARGET || 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/market-api/, ''),
+      },
       '/api/bsc': {
         // target: 'http://localhost:8200',
         target: 'http://192.168.1.102:9022',

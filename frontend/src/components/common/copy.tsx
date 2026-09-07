@@ -93,7 +93,7 @@ const Wrap = styled.div`
     opacity: 0;
     transition: opacity 0.3s;
     background: #ffffff73;
-    font-family: "agency-fb-regular", sans-serif;
+    font-family: "Sora", sans-serif;
     display: block;
     white-space: nowrap;
     z-index: 1000;

@@ -2,6 +2,28 @@ import { formatEther } from "ethers";
 import _ from "lodash";
 import { rest_api, NETWORK } from "./config";
 import queryString from "query-string";
+import axios, { AxiosResponse } from "axios";
+
+// GET with retry: on error (network / non-2xx) retries up to `retries` times
+// (default 3) with a short increasing backoff, then rethrows the last error.
+export const axiosGetWithRetry = async <T = any>(
+  url: string,
+  retries = 3,
+  delayMs = 800
+): Promise<AxiosResponse<T>> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await axios.get<T>(url);
+    } catch (err) {
+      lastError = err;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+};
 
 interface ColorMap {
   [key: number]: string;

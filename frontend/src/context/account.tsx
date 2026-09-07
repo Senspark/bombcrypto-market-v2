@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useRef, useState, ReactNode, MutableRefObject } from "react";
 import { newWeb3Modal } from "./smc";
-import { NETWORK_CONFIG } from "../utils/config";
+import { NETWORK_CONFIG, NETWORK_URL_PARAM, urlParamToNetwork } from "../utils/config";
 import { NetworkType, AuthState, AccountContextValue } from "../types/account";
 
 export const AccountContext = createContext<AccountContextValue | undefined>(undefined);
@@ -11,7 +11,14 @@ interface AccountProviderProps {
 }
 
 function Account({ children, type }: AccountProviderProps): JSX.Element {
-  const [network, setnetwork] = useState<NetworkType>(NETWORK_CONFIG[0].name as NetworkType);
+  // Seed the network from the URL (?network=) so shared links open on the right
+  // chain from the very first render — before any data is fetched.
+  const [network, setnetwork] = useState<NetworkType>(() => {
+    const fromUrl = urlParamToNetwork(
+      new URLSearchParams(window.location.search).get(NETWORK_URL_PARAM)
+    );
+    return fromUrl ?? (NETWORK_CONFIG[0].name as NetworkType);
+  });
   const [auth, setAuth] = useState<AuthState>({
     wallet: {},
     address: "",

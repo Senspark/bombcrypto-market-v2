@@ -19,26 +19,36 @@ const CheckBox = styled.div`
     display: none;
   }
   .box {
-    width: 1.688rem;
-    height: 1.688rem;
-    background: #3a3f54;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: 0 0 1.5rem;
+    background: var(--surface-2, #3a3f54);
+    border: 1.5px solid var(--border-strong, #3f4564);
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
     position: relative;
+    transition: background 0.15s ease, border-color 0.15s ease;
     &:after {
       content: "";
       position: absolute;
-      top: 50%;
+      top: 45%;
       left: 50%;
-      width: 75%;
-      height: 75%;
-      transform: translate(-50%, -50%);
-      background: #ff973a;
+      width: 0.32rem;
+      height: 0.62rem;
+      transform: translate(-50%, -55%) rotate(45deg);
+      border: solid #fff;
+      border-width: 0 2.5px 2.5px 0;
       opacity: 0;
-      border-radius: 3px;
+      transition: opacity 0.15s ease;
     }
+  }
+  &:hover .box {
+    border-color: var(--accent, #ff973a);
   }
   input:checked + label {
     .box {
+      background: var(--accent, #ff973a);
+      border-color: var(--accent, #ff973a);
       &:after {
         opacity: 1;
       }
@@ -46,10 +56,12 @@ const CheckBox = styled.div`
   }
   label {
     display: flex;
+    align-items: center;
     color: white;
-    font-size: 1.188rem;
+    font-size: 1.05rem;
+    cursor: pointer;
     .content {
-      margin-left: 0.75rem;
+      margin-left: 0.6rem;
       white-space: nowrap;
     }
   }
@@ -76,7 +88,10 @@ const Checkbox: React.FC<CheckboxProps> = ({ init, options, name, onChange = () 
   const changeCheckBox = (event: ChangeEvent<HTMLInputElement>) => {
     const option = event.target.value;
     const temp = [...value];
-    const index = value.findIndex((element) => element === option);
+    // value may hold numbers (seeded from the URL via parseInt) while `option`
+    // is always a string, so compare with String() on both sides — otherwise
+    // unchecking a URL-seeded box never matches and it can't be removed.
+    const index = value.findIndex((element) => String(element) === String(option));
     if (index === -1) {
       temp.push(option);
     } else {

@@ -3,6 +3,7 @@ import styled from "styled-components";
 import GroupCheckBox from "../components/forms/checkbox";
 import { NavLink, useHistory } from "react-router-dom";
 import { debounce, convertFilter, convertQueryToObject } from "../utils/helper";
+import { withNetworkParam } from "../utils/config";
 import Pagination from "../components/layouts/Pagination";
 import Search from "../components/forms/search";
 import Loading from "../components/layouts/loading";
@@ -125,7 +126,7 @@ const Statistics: React.FC = () => {
   const fetch = async (params: ParamsState) => {
     if (unount) return;
     const result = convertFilter(params);
-    history.replace(history.location.pathname + "?" + result);
+    history.replace(withNetworkParam(history.location.pathname + "?" + result, network));
     try {
       const listing = await axios.get(
         getAPI(network) + "transactions/houses/search?status=listing&" + result
@@ -271,7 +272,7 @@ const Element = styled(NavLink)`
   opacity: 0.3;
   cursor: pointer;
   transition: opacity 0.3s ease-in-out;
-  font-family: "agency-fb-regular", sans-serif;
+  font-family: "Sora", sans-serif;
   transition: 0.3s ease-in-out;
   &:hover {
     color: white !important;
@@ -297,6 +298,15 @@ const Element = styled(NavLink)`
       left: 0;
     }
   }
+
+  @media (max-width: 820px) {
+    padding: 0.7rem 1.1rem;
+    font-size: 1.4rem;
+    img {
+      height: 1.5rem;
+      margin-right: 0.5rem;
+    }
+  }
 `;
 
 const Option = styled.div`
@@ -304,28 +314,38 @@ const Option = styled.div`
   display: flex;
   align-items: center;
   padding-right: 1.5rem;
+  @media (max-width: 820px) {
+    margin-left: 0;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
   .select {
-    padding-right: 1rem;
-    background: #3a3f54;
     margin: 0px 6px;
-    cursor: pointer;
-    transition: background 0.3s ease-in-out;
-    border-radius: 2px;
     select {
-      height: 2.625rem;
-      padding: 0 1.625rem;
-      background: #3a3f54;
-      border: none;
-      color: white;
-      transition: background 0.3s ease-in-out;
+      height: 2.5rem;
+      padding: 0 2.2rem 0 0.9rem;
+      color: #fff;
+      cursor: pointer;
+      background-color: var(--surface-2, #3a3f54);
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238d95b7' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+      background-size: 0.75rem;
+      border: 1px solid var(--border, #2c3146);
+      border-radius: var(--radius-sm, 6px);
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      &:hover {
+        border-color: var(--border-strong, #3a4060);
+      }
       &:focus {
         outline: none;
-      }
-    }
-    &:hover {
-      background: #131e4b;
-      select {
-        background: #131e4b;
+        border-color: var(--accent, #ff973a);
+        box-shadow: 0 0 0 2px rgba(255, 151, 58, 0.2);
       }
     }
   }
@@ -374,10 +394,13 @@ const ContentTab = styled.div`
       width: 23rem;
     }
     .title {
-      color: #7680ab;
-      margin: 1.063rem 0rem;
-      font-size: 1.594rem;
-      font-family: "agency-fb-regular", sans-serif;
+      color: var(--text-muted, #9ca5b4);
+      margin: 1.25rem 0 0.55rem;
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-family: "Sora", sans-serif;
     }
     .level {
       display: flex;
@@ -395,11 +418,27 @@ const ContentTab = styled.div`
   .right {
     padding: 1.688rem 1.25rem;
     flex: 1;
+    min-width: 0;
     .right-title {
-      font-family: "agency-fb-regular", sans-serif;
+      font-family: "Sora", sans-serif;
       font-size: 2.031rem;
       color: #fff;
       margin-bottom: 1.563rem;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    .left {
+      flex: 1 1 auto;
+      width: 100%;
+      height: auto;
+      position: static;
+      border-right: none;
+      border-bottom: 1px solid var(--border, #3f445b);
+    }
+    .right {
+      width: 100%;
     }
   }
 `;
@@ -409,6 +448,10 @@ const TabTitle = styled.div`
   width: 100%;
   overflow: hidden;
   border-bottom: 1px solid #3f445b;
+  @media (max-width: 820px) {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
 `;
 
 const Recently = styled.div`

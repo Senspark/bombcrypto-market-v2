@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Copy from "./copy";
 import styled from "styled-components";
+import { useAccount } from "../../context/account";
+import { withNetworkParam } from "../../utils/config";
 
 const Wrap = styled.div`
   display: flex;
@@ -25,7 +27,8 @@ interface LinkProfileProps {
 
 const LinkProfile: React.FC<LinkProfileProps> = ({ type, id }) => {
   const origin = window.location.origin;
-  const url = `/market/${type}/${id}`;
+  const { network } = useAccount();
+  const url = withNetworkParam(`/market/${type}/${id}`, network);
   return (
     <Wrap className="">
       <Copy data={origin + url} />

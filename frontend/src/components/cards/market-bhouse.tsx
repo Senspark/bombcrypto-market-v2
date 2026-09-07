@@ -2,8 +2,8 @@ import React from "react";
 import styled from "styled-components";
 import { Tag } from "../common/style";
 import Copy from "../common/copy";
+import { Copy as CopyIcon } from "../icons";
 import ButtonBuy from "../buttons/buy-house";
-import LinkProfile from "../common/link-profile";
 import {
   bcoinFormat,
   mapTag,
@@ -39,7 +39,16 @@ const BHeroFullWidth: React.FC<MarketBhouseProps> = ({ data, refesh }) => {
         />
       </div>
       <div className="info">
-        <Tag>#{data.tokenId}</Tag>
+        <Tag
+          className="id-tag"
+          title="Copiar ID"
+          onClick={() =>
+            navigator.clipboard?.writeText(String(data.tokenId))
+          }
+        >
+          #{data.tokenId}
+          <CopyIcon />
+        </Tag>
         <Tag className={mapTag[data.rarity]}>{mapHouse[data.rarity]}</Tag>
       </div>
 
@@ -81,9 +90,6 @@ const BHeroFullWidth: React.FC<MarketBhouseProps> = ({ data, refesh }) => {
             price={data.amount}
             id={data.tokenId}
           />
-          <div className="link">
-            <LinkProfile id={data.tokenId} type="bhouse" />
-          </div>
         </div>
       </div>
     </Item>
@@ -96,12 +102,42 @@ const Item = styled.div`
   align-items: center;
   padding: 1.125rem 1.313rem;
   justify-content: space-between;
-  border: solid 1px #343849;
-  background-color: #191b24;
+  border: solid 1px var(--border, #343849);
+  background-color: var(--surface, #191b24);
+  border-radius: var(--radius, 10px);
+  margin-bottom: 0.875rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  &:hover {
+    border-color: var(--accent, #ff973a);
+    box-shadow: var(--shadow, 0 6px 20px rgba(0, 0, 0, 0.35));
+    transform: translateY(-2px);
+  }
   .info {
     width: 6.714rem;
     margin-right: 4rem;
     @media (min-width: 1440px) {
+    }
+  }
+  .id-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+    svg {
+      height: 0.85rem;
+      width: 0.85rem;
+      fill: currentColor;
+      opacity: 0.9;
+    }
+    &:hover {
+      filter: brightness(1.1);
+    }
+    &:active {
+      transform: scale(0.96);
     }
   }
 
@@ -111,7 +147,75 @@ const Item = styled.div`
     text-align: center;
     img {
       height: 5.5rem;
-      object-fit: cover;
+      object-fit: contain;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .info {
+      margin-right: 1rem;
+    }
+    .icon-hero {
+      margin-right: 1rem;
+    }
+    .flex-skill {
+      flex-wrap: wrap;
+      gap: 0.4rem 0.9rem;
+      justify-content: center;
+      & > div {
+        margin: 0.4rem 0.6rem !important;
+      }
+    }
+    .action {
+      width: auto;
+    }
+  }
+  @media (max-width: 820px) {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    .info,
+    .icon-hero {
+      width: auto;
+      margin-right: 0;
+    }
+    .info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .flex-skill {
+      display: grid !important;
+      grid-template-columns: repeat(2, auto);
+      justify-content: center;
+      gap: 0.9rem 2rem;
+      width: auto;
+      max-width: 100%;
+      & > div {
+        margin: 0 !important;
+        width: auto !important;
+      }
+      .owner {
+        width: auto !important;
+      }
+    }
+    .action {
+      margin-left: 0 !important;
+      width: auto !important;
+      flex-direction: column;
+      gap: 0.6rem;
+      align-items: center;
+      justify-content: center;
+    }
+    .buy-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      .link {
+        position: static;
+        margin-top: 0.4rem;
+      }
     }
   }
   .flex-skill {

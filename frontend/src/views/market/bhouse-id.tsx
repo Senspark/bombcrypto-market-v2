@@ -36,6 +36,7 @@ const MarketHeroById: React.FC = () => {
   const params = useParams<RouteParams>();
   const history = useHistory();
   const [isFirstRun, setIsFirstRun] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (auth?.logged) {
@@ -61,14 +62,22 @@ const MarketHeroById: React.FC = () => {
   }, [params.id]);
 
   const fetchData = async () => {
-    const listing = await axios.get(
-      getAPI(network) +
-        "transactions/houses/search?status=listing&token_id=" +
-        params.id
-    );
-    const data = (await getListTokenPay(listing, true)) as HouseData[];
-    if (data.length > 0) {
-      setData(data[0]);
+    setData(null);
+    setNotFound(false);
+    try {
+      const listing = await axios.get(
+        getAPI(network) +
+          "transactions/houses/search?status=listing&token_id=" +
+          params.id
+      );
+      const data = ((await getListTokenPay(listing, true)) as HouseData[]) || [];
+      if (data.length > 0) {
+        setData(data[0]);
+      } else {
+        setNotFound(true);
+      }
+    } catch (e) {
+      setNotFound(true);
     }
   };
 
@@ -94,10 +103,28 @@ const MarketHeroById: React.FC = () => {
 
   return (
     <Recently>
-      {!data && (
+      {!data && !notFound && (
         <div className="loading-in-local">
           <Loading />
         </div>
+      )}
+      {notFound && (
+        <ContentTab>
+          <Back>
+            <div onClick={goBack}>
+              <AiOutlineLeft /> Back
+            </div>
+          </Back>
+          <div style={{ textAlign: "center", color: "#fff", marginTop: "6rem" }}>
+            <div style={{ fontSize: "1.6rem", marginBottom: "0.5rem" }}>
+              House #{params.id} not found
+            </div>
+            <div style={{ opacity: 0.6 }}>
+              This house isn't listed on the current network — try switching the
+              network.
+            </div>
+          </div>
+        </ContentTab>
       )}
       {data && (
         <ContentTab>
@@ -172,18 +199,31 @@ const Content = styled.div`
   min-width: 62.5rem;
   margin: 0 auto;
   display: flex;
+  @media (max-width: 820px) {
+    min-width: 0;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
 `;
 
 const Right = styled.div`
   width: 100%;
   margin-bottom: 2rem;
   margin-left: 7rem;
+  @media (max-width: 820px) {
+    margin-left: 0;
+  }
 `;
 
 const Back = styled.div`
   max-width: 75rem;
   min-width: 62.5rem;
   margin: 10px auto;
+  @media (max-width: 820px) {
+    min-width: 0;
+    padding: 0 1rem;
+  }
   cursor: pointer;
   transition: 0.3s ease-in-out;
   opacity: 0.6;

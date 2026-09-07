@@ -125,10 +125,12 @@ const ConnectWallet: React.FC = () => {
   let networkToChange = network === NETWORK_CONFIG[0].name ? NETWORK_CONFIG[1] : NETWORK_CONFIG[0];
 
   const changeNetwork = () => {
+    // Switch the app's network (state + URL) immediately so it works even when
+    // logged in and the wallet can't change chain (e.g. the target testnet
+    // isn't added to MetaMask). When logged in, also ask the wallet to switch.
+    listenNetworkChange(networkToChange.chainId);
     if (auth?.logged) {
       doChangeNetwork(networkToChange.chainId);
-    } else {
-      listenNetworkChange(networkToChange.chainId);
     }
   };
 
