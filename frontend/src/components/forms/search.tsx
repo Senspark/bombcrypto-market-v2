@@ -3,37 +3,38 @@ import styled from "styled-components";
 import SearchIcon from "../icons/search";
 
 const BoxSearch = styled.div`
-  padding-right: 1rem;
-  background: #3a3f54;
-  margin: 0px 6px;
-  transition: background 0.3s ease-in-out;
-  border-radius: 2px;
+  background: var(--surface-2, #3a3f54);
+  border: 1px solid var(--border, #2c3146);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  border-radius: var(--radius-sm, 6px);
   display: flex;
   align-items: center;
-  padding: 0rem 1rem;
+  padding: 0rem 0.9rem;
   svg {
-    width: 2rem;
-    height: 2rem;
-    fill: white;
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: var(--text-muted, #8d95b7);
   }
 
   input {
-    height: 2.625rem;
-    padding: 0 0px 0px 1.625rem;
-    background: #3a3f54;
+    height: 2.5rem;
+    padding: 0 0 0 0.6rem;
+    background: transparent;
     border: none;
     width: 7rem;
-    color: white;
-    transition: background 0.3s ease-in-out;
+    color: #fff;
+    &::placeholder {
+      color: var(--text-muted, #8d95b7);
+    }
     &:focus {
       outline: none;
     }
   }
-  &:hover {
-    background: #131e4b;
-    input {
-      background: #131e4b;
-    }
+  &:focus-within {
+    border-color: var(--accent, #ff973a);
+    box-shadow: 0 0 0 2px rgba(255, 151, 58, 0.2);
   }
 `;
 

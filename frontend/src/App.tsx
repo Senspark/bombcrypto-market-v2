@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Dashboard from "./views/index";
 import Market from "./views/market";
 import MarketBHouse from "./views/market-bhouse";
@@ -17,8 +17,14 @@ import {
   Route,
   Redirect,
   useLocation,
+  useHistory,
   RouteProps,
 } from "react-router-dom";
+import {
+  NETWORK_URL_PARAM,
+  networkToUrlParam,
+  urlParamToNetwork,
+} from "./utils/config";
 import "antd/dist/antd.css";
 import "./App.css";
 
@@ -29,6 +35,7 @@ function App(): JSX.Element {
         <AccountProvider>
           <SmartContract>
             <Router>
+              <NetworkUrlSync />
               <Header />
               <div style={{ padding: 10 }}></div>
               <AnimatePresence>
@@ -41,6 +48,51 @@ function App(): JSX.Element {
     </React.Fragment>
   );
 }
+
+// Keeps the selected network and the URL (?network=) in sync in both directions.
+// Initial load is already handled by the AccountProvider seeding state from the
+// URL; this handles in-app changes (dropdown/wallet) and browser back/forward.
+const NetworkUrlSync: React.FC = () => {
+  const location = useLocation();
+  const history = useHistory();
+  const { network, updateNetwork } = useAccount();
+  const isFirst = useRef(true);
+
+  // URL -> state: follow the network in the URL (back/forward, edited links).
+  useEffect(() => {
+    const fromUrl = urlParamToNetwork(
+      new URLSearchParams(location.search).get(NETWORK_URL_PARAM)
+    );
+    if (fromUrl && fromUrl !== network) {
+      updateNetwork(fromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
+  // state -> URL: keep ?network= in the URL on every page. Re-runs on location
+  // changes too, so it re-asserts the param whenever a page rebuilds the query
+  // string (filters, sort, pagination, auto-refresh) and drops it. This makes
+  // it work for all pages without each one having to preserve the param.
+  useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const desired = networkToUrlParam(network);
+    if (params.get(NETWORK_URL_PARAM) !== desired) {
+      params.set(NETWORK_URL_PARAM, desired);
+      history.replace({
+        pathname: window.location.pathname,
+        search: params.toString(),
+        hash: window.location.hash,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [network, location.search, location.pathname]);
+
+  return null;
+};
 
 const ContentRouter: React.FC = () => {
   const location = useLocation();

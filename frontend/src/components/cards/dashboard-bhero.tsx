@@ -159,10 +159,11 @@ const Item = styled.div`
   display: flex;
   width: 100%;
   align-items: center;
-  padding: 0.5rem 1.313rem;
+  padding: 0.85rem 1.313rem;
   min-height: 12rem;
-  justify-content: flex-start;
-  gap: 1rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   .info {
     width: 12rem;
     flex-shrink: 0;
@@ -173,8 +174,8 @@ const Item = styled.div`
     color: #a6afd7;
   }
   .info-skill {
-    flex: 1 1 0;
     min-width: 0;
+    flex: 1;
   }
   .icon-hero {
     flex-shrink: 0;
@@ -182,9 +183,7 @@ const Item = styled.div`
   .flex-skill {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    column-gap: 0.5rem;
-    row-gap: 0.5rem;
+    gap: 0.4rem 0.85rem;
   }
   .skill-item {
     display: flex;

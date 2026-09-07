@@ -41,7 +41,19 @@ const AccountStyled = styled.div`
       color: #7680ab;
       margin: 1.063rem 0rem;
       font-size: 1.594rem;
-      font-family: "agency-fb-regular", sans-serif;
+      font-family: "Sora", sans-serif;
+    }
+  }
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    .left {
+      flex: 1 1 auto;
+      width: 100%;
+      height: auto;
+      position: static;
+      border-right: none;
+      border-bottom: 1px solid #3f445b;
+      padding: 1rem 0;
     }
   }
 `;

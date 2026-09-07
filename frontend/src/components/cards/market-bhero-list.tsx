@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Tag, IconItem, IconSkill, IconCoinStake } from "../common/style";
 import ButtonBuy from "../buttons/buy";
-import LinkProfile from "../common/link-profile";
+import { Copy as CopyIcon } from "../icons";
 import {
   mapRarity,
   skills,
@@ -56,15 +56,24 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
     <Item className={data.suspicious ? "suspicious" : ""}>
       <HeroIcon
         data={data}
-        heroType={isHeroS ? HeroType.s : shieldData?.heroType as any}
+        heroType={isHeroS ? HeroType.s : (shieldData?.heroType as any)}
       />
       <div className="info">
         <div className="level">Level {data.level}</div>
-        <Tag>#{data.tokenId}</Tag>
+        <Tag
+          className="id-tag"
+          title="Copiar ID"
+          onClick={() =>
+            navigator.clipboard?.writeText(String(data.tokenId))
+          }
+        >
+          #{data.tokenId}
+          <CopyIcon />
+        </Tag>
         <Tag className={mapTag[data.rarity]}>{mapRarity(data.rarity)}</Tag>
         <SuspiciousBadge flag={data.suspicious} />
       </div>
-      <div className="info-skill">
+      <div className="stats-block">
         <div className="flex-skill">
           <div className="power">
             <div className="title">POWER</div>
@@ -128,19 +137,19 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
             </div>
           )}
         </div>
-        <div>
-          <div className="text">STAKED</div>
-          <div className="flex-skill">
-            <div className="skill">
-              <IconCoinStake src="/icons/token.png" />
-              <span>{shieldData ? staked : "?"}</span>
-            </div>
+      </div>
+      <div className="staked-col">
+        <div className="text">STAKED</div>
+        <div className="flex-skill">
+          <div className="skill">
+            <IconCoinStake src="/icons/token.png" />
+            <span>{shieldData ? staked : "?"}</span>
           </div>
-          <div className="flex-skill">
-            <div className="skill">
-              <IconCoinStake src="/icons/sen_token.png" />
-              <span>{shieldData ? stakedSen : "?"}</span>
-            </div>
+        </div>
+        <div className="flex-skill">
+          <div className="skill">
+            <IconCoinStake src="/icons/sen_token.png" />
+            <span>{shieldData ? stakedSen : "?"}</span>
           </div>
         </div>
       </div>
@@ -176,9 +185,6 @@ const BHeroFullWidth: React.FC<MarketBheroListProps> = ({ data, network }) => {
             id={data.tokenId}
             fetchData={() => {}}
           />
-          <div className="link">
-            <LinkProfile type="bhero" id={data.tokenId} />
-          </div>
         </div>
       </div>
     </Item>
@@ -192,14 +198,45 @@ const Item = styled.div`
   &.suspicious {
     border-color: #ff0759;
   }
-  padding: 1.125rem 1.313rem;
+  padding: 1.125rem 1.5rem;
+  justify-content: flex-start;
   gap: 1rem;
   min-height: 12rem;
-  border: solid 1px #343849;
-  background-color: #191b24;
+  border: solid 1px var(--border, #343849);
+  background-color: var(--surface, #191b24);
+  border-radius: var(--radius, 10px);
+  margin-bottom: 0.875rem;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  &:hover {
+    border-color: var(--accent, #ff973a);
+    box-shadow: var(--shadow, 0 6px 20px rgba(0, 0, 0, 0.35));
+    transform: translateY(-2px);
+  }
   .info {
     width: 12rem;
     flex-shrink: 0;
+  }
+  .id-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+    svg {
+      height: 0.85rem;
+      width: 0.85rem;
+      fill: currentColor;
+      opacity: 0.9;
+    }
+    &:hover {
+      filter: brightness(1.1);
+    }
+    &:active {
+      transform: scale(0.96);
+    }
   }
 
   .icon-hero {
@@ -224,6 +261,15 @@ const Item = styled.div`
       }
     }
 
+    @media (max-width: 820px) {
+      min-width: 0;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.9rem;
+      & > div {
+        width: 3.75rem;
+      }
+    }
+
     .title {
       font-size: 0.813rem;
       line-height: 1.31;
@@ -234,12 +280,15 @@ const Item = styled.div`
   .skill-item {
     display: flex;
     flex-wrap: wrap;
-    row-gap: 0.5rem;
-    justify-content: flex-end;
-    flex: 1 1 0;
-    min-width: 0;
+    gap: 0.5rem;
+    /* justify-content: space-between; */
+    min-width: 10rem;
     img {
-      margin-right: 0.75rem;
+      margin-right: 0;
+      background-color: var(--surface-2, #272d47);
+      border-radius: 8px;
+      padding: 0.25rem;
+      box-sizing: border-box;
     }
   }
   .content-shield {
@@ -266,9 +315,22 @@ const Item = styled.div`
     line-height: 1.8;
     /* display: inline-block; */
   }
+  .staked-col {
+    margin-left: auto;
+    min-width: 4.5rem;
+    .text {
+      margin-top: 0;
+    }
+    .flex-skill {
+      min-width: auto;
+      margin-top: 0.4rem;
+    }
+  }
   .action {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
     width: 14rem;
     flex-shrink: 0;
     .top {
@@ -291,14 +353,49 @@ const Item = styled.div`
   }
   .buy-wrap {
     position: relative;
-    .link {
+    /* .link {
       position: absolute;
       top: 102%;
       left: 0%;
-    }
+    } */
   }
   .custom-shield {
     display: flex;
+  }
+
+  @media (max-width: 820px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.85rem;
+    .info {
+      width: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .stats-block,
+    .staked-col,
+    .skill-item,
+    .action {
+      margin-left: 0;
+    }
+    .flex-skill {
+      justify-content: center;
+    }
+    .staked-col .flex-skill {
+      justify-content: center;
+    }
+    .skill-item {
+      justify-content: center;
+      min-width: 0;
+    }
+    .action {
+      width: auto;
+      flex-direction: column;
+      gap: 0.6rem;
+      align-items: center;
+    }
   }
 `;
 

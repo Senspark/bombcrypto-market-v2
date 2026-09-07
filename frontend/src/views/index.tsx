@@ -19,6 +19,16 @@ const WrapRecently = styled(Container)`
   @media (max-width: 1024px) {
     gap: 2rem;
   }
+  @media (max-width: 820px) {
+    flex-direction: column;
+    gap: 2.5rem;
+    padding: 0 0.75rem;
+    & > div {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
+    }
+  }
 `;
 
 const Wrap = styled.div`

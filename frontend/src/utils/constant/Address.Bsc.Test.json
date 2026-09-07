@@ -5,5 +5,6 @@
   "bhouse": "0xB901EE87a6321ea73532C7fDF772dC9790b38c3C",
   "bheromarket": "0x0A32cD1069cf6b4A11b79b37aFb2A13598E6E5ca",
   "bhousemarket": "0x19E4320D81954fB1321d2e4cc5C1eA064a289aaf",
-  "rpc": "https://data-seed-prebsc-2-s1.binance.org:8545/"
+  "rpc": "https://bsc-testnet.bnbchain.org",
+  "api": "/market-api/"
 }

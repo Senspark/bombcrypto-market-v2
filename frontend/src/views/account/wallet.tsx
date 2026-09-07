@@ -98,9 +98,13 @@ export default Wallet;
 
 const WalletWrap = styled.div`
   flex: 1;
+  min-width: 0;
   padding: 3.188rem 2.563rem;
   .total-price {
     min-width: 10rem;
+  }
+  @media (max-width: 820px) {
+    padding: 1.5rem 1rem;
   }
 `;
 
@@ -112,6 +116,15 @@ const WalletBox = styled.div`
   border-radius: 5px;
   border: solid 1px #565b78;
   background-color: #2c2f3f;
+  @media (max-width: 1280px) {
+    padding: 2.75rem 6rem;
+  }
+  @media (max-width: 820px) {
+    padding: 1.5rem 1rem;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    justify-content: space-around;
+  }
 `;
 
 const Item = styled.div`

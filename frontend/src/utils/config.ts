@@ -10,6 +10,7 @@ import address_polygon_prod from "./constant/Address.Polygon.Prod.json";
 import BNBIcon from "../assets/images/Binance_icon.png";
 import PolygonIcon from "../assets/images/polygon_icon.png";
 import { rpcService } from "../components/Service/rpcService";
+import type { NetworkType } from "../types/account";
 
 export const isProduction = import.meta.env.VITE_IS_PROD === "true";
 
@@ -155,6 +156,14 @@ export const ChainId: Record<string, number> = {
 };
 
 export const getRpcByChainId = (chainId: number): string => {
+  // rpcService only serves MAINNET pools (it returns a mainnet RPC even for
+  // testnet chainIds). On testnet that would point contract reads at mainnet
+  // and return "0x", so always use the configured testnet RPC there.
+  if (!isProduction) {
+    if (chainId === ChainId.BNB) return RPC_BSC.BNB;
+    if (chainId === ChainId.Polygon) return RPC_BSC.Polygon;
+  }
+
   const runtimeRpc = rpcService.getRpc(chainId);
   if (runtimeRpc) {
     return runtimeRpc;
@@ -202,6 +211,35 @@ export const NETWORK = {
   BNB: "BNB",
   POLYGON: "Polygon",
 } as const;
+
+// --- Network <-> URL helpers -------------------------------------------------
+// Keeps the selected chain in the URL (?network=bsc|polygon) so shared market
+// links (e.g. a hero page) preserve which network the item is on instead of
+// always defaulting to BSC. A missing/invalid param falls back to BSC.
+export const NETWORK_URL_PARAM = "network";
+
+export const networkToUrlParam = (network: string): string =>
+  network === NETWORK.POLYGON ? "polygon" : "bsc";
+
+export const urlParamToNetwork = (
+  value: string | null | undefined
+): NetworkType | null => {
+  if (!value) return null;
+  const v = value.toLowerCase();
+  if (v === "polygon" || v === "matic" || v === "pol") return NETWORK.POLYGON;
+  if (v === "bsc" || v === "bnb" || v === "binance") return NETWORK.BNB;
+  return null;
+};
+
+// Sets the current network on a path, preserving other query params and
+// de-duplicating: URLSearchParams.set() removes any existing network entries
+// first, so calling this repeatedly never stacks ?network=bsc&network=bsc...
+export const withNetworkParam = (path: string, network: string): string => {
+  const [base, query = ""] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set(NETWORK_URL_PARAM, networkToUrlParam(network));
+  return `${base}?${params.toString()}`;
+};
 
 export const HeroType = {
   l: "L",
